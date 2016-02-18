@@ -7,6 +7,8 @@ Lifted out of [multicast-dns](https://github.com/mafintosh/multicast-dns) as a s
 npm install dns-packet
 ```
 
+[![build status](https://travis-ci.org/mafintosh/dns-packet.svg?branch=master)](https://travis-ci.org/mafintosh/dns-packet)
+
 ## Usage
 
 ``` js
