@@ -171,6 +171,8 @@ rtxt.encode = function (data, buf, offset) {
   if (!offset) offset = 0
 
   if (typeof data === 'string') data = Buffer(data)
+  if (!data) data = Buffer(0)
+
   var oldOffset = offset
   offset += 2
 
