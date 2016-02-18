@@ -204,6 +204,7 @@ rtxt.decode = function (buf, offset) {
 rtxt.decode.bytes = 0
 
 rtxt.encodingLength = function (data) {
+  if (!data) return 2
   return (Buffer.isBuffer(data) ? data.length : Buffer.byteLength(data)) + 2
 }
 
