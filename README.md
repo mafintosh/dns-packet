@@ -20,6 +20,7 @@ var socket = dgram.createSocket('udp4')
 var buf = packet.encode({
   type: 'query',
   id: 1,
+  flags: packet.RECURSION_DESIRED,
   questions: [{
     type: 'A',
     name: 'google.com'
@@ -55,11 +56,35 @@ Packets look like this
 {
   type: 'query|response',
   id: optionalIdNumber,
+  flags: optionalBitFlags,
   questions: [...],
   answers: [...],
   additionals: [...],
   authorities: [...]
 }
+```
+
+The bit flags available are
+
+``` js
+packet.RECURSION_DESIRED
+packet.RECURSION_AVAILABLE
+packet.TRUNCATED_RESPONSE
+packet.AUTHORITATIVE_ANSWER
+packet.AUTHENTIC_DATA
+packet.CHECKING_DISABLED
+```
+
+To use more than one flag bitwise-or them together
+
+``` js
+var flags = packet.RECURSION_DESIRED | packet.RECURSION_AVAILABLE
+```
+
+And to check for a flag use bitwise-and
+
+``` js
+var isRecursive = message.flags & packet.RECURSION_DESIRED
 ```
 
 A question looks like this

@@ -101,8 +101,11 @@ header.encode = function (h, buf, offset) {
   if (!buf) buf = header.encodingLength(h)
   if (!offset) offset = 0
 
+  var flags = (h.flags || 0) & 32767
+  var type = h.type === 'response' ? RESPONSE_FLAG : QUERY_FLAG
+
   buf.writeUInt16BE(h.id || 0, offset)
-  buf.writeUInt16BE(h.type === 'response' ? RESPONSE_FLAG : QUERY_FLAG, offset + 2)
+  buf.writeUInt16BE(flags | type, offset + 2)
   buf.writeUInt16BE(h.questions.length, offset + 4)
   buf.writeUInt16BE(h.answers.length, offset + 6)
   buf.writeUInt16BE(h.authorities.length, offset + 8)
@@ -116,10 +119,12 @@ header.encode.bytes = 12
 header.decode = function (buf, offset) {
   if (!offset) offset = 0
   if (buf.length < 12) throw new Error('Header must be 12 bytes')
+  var flags = buf.readUInt16BE(offset + 2)
 
   return {
     id: buf.readUInt16BE(offset),
-    type: buf.readUInt16BE(offset + 2) & RESPONSE_FLAG ? 'response' : 'query',
+    type: flags & RESPONSE_FLAG ? 'response' : 'query',
+    flags: flags & 32767,
     questions: new Array(buf.readUInt16BE(offset + 4)),
     answers: new Array(buf.readUInt16BE(offset + 6)),
     authorities: new Array(buf.readUInt16BE(offset + 8)),
@@ -502,6 +507,13 @@ question.decode.bytes = 0
 question.encodingLength = function (q) {
   return name.encodingLength(q.name) + 4
 }
+
+exports.AUTHORITATIVE_ANSWER = 1 << 10
+exports.TRUNCATED_RESPONSE = 1 << 9
+exports.RECURSION_DESIRED = 1 << 8
+exports.RECURSION_AVAILABLE = 1 << 7
+exports.AUTHENTIC_DATA = 1 << 5
+exports.CHECKING_DISABLED = 1 << 4
 
 exports.encode = function (result, buf, offset) {
   if (!buf) buf = Buffer(exports.encodingLength(result))

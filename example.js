@@ -6,6 +6,7 @@ var socket = dgram.createSocket('udp4')
 var buf = packet.encode({
   type: 'query',
   id: 1,
+  flags: packet.RECURSION_DESIRED,
   questions: [{
     type: 'A',
     name: 'google.com'

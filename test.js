@@ -97,6 +97,7 @@ tape('query', function (t) {
 tape('response', function (t) {
   testEncoder(t, packet, {
     type: 'response',
+    flags: packet.TRUNCATED_RESPONSE,
     answers: [{
       type: 'A',
       name: 'hello.a.com',
@@ -118,6 +119,7 @@ tape('response', function (t) {
   testEncoder(t, packet, {
     type: 'response',
     id: 100,
+    flags: 0,
     additionals: [{
       type: 'AAAA',
       name: 'hello.a.com',
