@@ -1,5 +1,6 @@
 var types = require('./types')
 var ip = require('ip')
+var Buffer = require('safe-buffer').Buffer
 
 var QUERY_FLAG = 0
 var RESPONSE_FLAG = 1 << 15
@@ -11,7 +12,7 @@ var NOT_QU_MASK = ~QU_MASK
 var name = {}
 
 name.encode = function (n, buf, offset) {
-  if (!buf) buf = Buffer(name.encodingLength(n))
+  if (!buf) buf = Buffer.allocUnsafe(name.encodingLength(n))
   if (!offset) offset = 0
 
   var list = n.split('.')
@@ -69,7 +70,7 @@ name.encodingLength = function (n) {
 var string = {}
 
 string.encode = function (s, buf, offset) {
-  if (!buf) buf = Buffer(string.encodingLength(s))
+  if (!buf) buf = Buffer.allocUnsafe(string.encodingLength(s))
   if (!offset) offset = 0
 
   var len = buf.write(s, offset + 1)
@@ -141,7 +142,7 @@ header.encodingLength = function (h) {
 var runknown = exports.unknown = {}
 
 runknown.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer(runknown.encodingLength(data))
+  if (!buf) buf = Buffer.allocUnsafe(runknown.encodingLength(data))
   if (!offset) offset = 0
 
   buf.writeUInt16BE(data.length, offset)
@@ -172,11 +173,11 @@ var rtxt = exports.txt = exports.null = {}
 var rnull = rtxt
 
 rtxt.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer(rtxt.encodingLength(data))
+  if (!buf) buf = Buffer.allocUnsafe(rtxt.encodingLength(data))
   if (!offset) offset = 0
 
-  if (typeof data === 'string') data = Buffer(data)
-  if (!data) data = Buffer(0)
+  if (typeof data === 'string') data = Buffer.from(data)
+  if (!data) data = Buffer.allocUnsafe(0)
 
   var oldOffset = offset
   offset += 2
@@ -216,7 +217,7 @@ rtxt.encodingLength = function (data) {
 var rhinfo = exports.hinfo = {}
 
 rhinfo.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer(rhinfo.encodingLength(data))
+  if (!buf) buf = Buffer.allocUnsafe(rhinfo.encodingLength(data))
   if (!offset) offset = 0
 
   var oldOffset = offset
@@ -258,7 +259,7 @@ var rcname = exports.cname = rptr
 var rdname = exports.dname = rptr
 
 rptr.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer(rptr.encodingLength(data))
+  if (!buf) buf = Buffer.allocUnsafe(rptr.encodingLength(data))
   if (!offset) offset = 0
 
   name.encode(data, buf, offset + 2)
@@ -286,7 +287,7 @@ rptr.encodingLength = function (data) {
 var rsrv = exports.srv = {}
 
 rsrv.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer(rsrv.encodingLength(data))
+  if (!buf) buf = Buffer.allocUnsafe(rsrv.encodingLength(data))
   if (!offset) offset = 0
 
   buf.writeUInt16BE(data.priority || 0, offset + 2)
@@ -327,7 +328,7 @@ rsrv.encodingLength = function (data) {
 var ra = exports.a = {}
 
 ra.encode = function (host, buf, offset) {
-  if (!buf) buf = Buffer(ra.encodingLength(host))
+  if (!buf) buf = Buffer.allocUnsafe(ra.encodingLength(host))
   if (!offset) offset = 0
 
   buf.writeUInt16BE(4, offset)
@@ -357,7 +358,7 @@ ra.encodingLength = function (host) {
 var raaaa = exports.aaaa = {}
 
 raaaa.encode = function (host, buf, offset) {
-  if (!buf) buf = Buffer(raaaa.encodingLength(host))
+  if (!buf) buf = Buffer.allocUnsafe(raaaa.encodingLength(host))
   if (!offset) offset = 0
 
   buf.writeUInt16BE(16, offset)
@@ -402,7 +403,7 @@ var renc = exports.record = function (type) {
 var answer = exports.answer = {}
 
 answer.encode = function (a, buf, offset) {
-  if (!buf) buf = Buffer(answer.encodingLength(a))
+  if (!buf) buf = Buffer.allocUnsafe(answer.encodingLength(a))
   if (!offset) offset = 0
 
   var oldOffset = offset
@@ -460,7 +461,7 @@ answer.encodingLength = function (a) {
 var question = exports.question = {}
 
 question.encode = function (q, buf, offset) {
-  if (!buf) buf = Buffer(question.encodingLength(q))
+  if (!buf) buf = Buffer.allocUnsafe(question.encodingLength(q))
   if (!offset) offset = 0
 
   var oldOffset = offset
@@ -516,7 +517,7 @@ exports.AUTHENTIC_DATA = 1 << 5
 exports.CHECKING_DISABLED = 1 << 4
 
 exports.encode = function (result, buf, offset) {
-  if (!buf) buf = Buffer(exports.encodingLength(result))
+  if (!buf) buf = Buffer.allocUnsafe(exports.encodingLength(result))
   if (!offset) offset = 0
 
   var oldOffset = offset

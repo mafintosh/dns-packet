@@ -1,20 +1,21 @@
 var tape = require('tape')
 var packet = require('./')
+var Buffer = require('safe-buffer').Buffer
 
 tape('unknown', function (t) {
-  testEncoder(t, packet.unknown, Buffer('hello world'))
+  testEncoder(t, packet.unknown, Buffer.from('hello world'))
   t.end()
 })
 
 tape('txt', function (t) {
-  testEncoder(t, packet.txt, Buffer(0))
-  testEncoder(t, packet.txt, Buffer('hello world'))
-  testEncoder(t, packet.txt, Buffer([0, 1, 2, 3, 4, 5]))
+  testEncoder(t, packet.txt, Buffer.allocUnsafe(0))
+  testEncoder(t, packet.txt, Buffer.from('hello world'))
+  testEncoder(t, packet.txt, Buffer.from([0, 1, 2, 3, 4, 5]))
   t.end()
 })
 
 tape('null', function (t) {
-  testEncoder(t, packet.null, Buffer([0, 1, 2, 3, 4, 5]))
+  testEncoder(t, packet.null, Buffer.from([0, 1, 2, 3, 4, 5]))
   t.end()
 })
 
@@ -140,7 +141,7 @@ tape('response', function (t) {
     answers: [{
       type: 'NULL',
       name: 'hello.null.com',
-      data: Buffer([1, 2, 3, 4, 5])
+      data: Buffer.from([1, 2, 3, 4, 5])
     }]
   })
 
@@ -164,7 +165,7 @@ function testEncoder (t, packet, val) {
   t.ok(compare(t, val, val3), 'decoded object match on re-encode')
   t.ok(compare(t, val2, val3), 're-encoded decoded object match on re-encode')
 
-  var bigger = Buffer(buf2.length + 10)
+  var bigger = Buffer.allocUnsafe(buf2.length + 10)
 
   var buf3 = packet.encode(val, bigger, 10)
   var val4 = packet.decode(buf3, 10)

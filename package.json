@@ -7,7 +7,8 @@
     "url": "https://github.com/mafintosh/dns-packet"
   },
   "dependencies": {
-    "ip": "^1.1.0"
+    "ip": "^1.1.0",
+    "safe-buffer": "^5.0.1"
   },
   "devDependencies": {
     "standard": "^6.0.5",
