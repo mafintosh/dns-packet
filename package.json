@@ -11,6 +11,7 @@
     "safe-buffer": "^5.0.1"
   },
   "devDependencies": {
+    "@types/node": "^6.0.51",
     "standard": "^6.0.5",
     "tape": "^4.4.0"
   },
@@ -22,6 +23,7 @@
   },
   "homepage": "https://github.com/mafintosh/dns-packet",
   "main": "index.js",
+  "types": "index.d.ts",
   "keywords": [
     "dns",
     "packet",
