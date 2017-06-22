@@ -23,6 +23,7 @@ var buf = packet.encode({
   flags: packet.RECURSION_DESIRED,
   questions: [{
     type: 'A',
+    class: 'IN',
     name: 'google.com'
   }]
 })
@@ -92,6 +93,7 @@ A question looks like this
 ``` js
 {
   type: 'A', // or SRV, AAAA, etc
+  class: 'IN', // one of IN, CS, CH, HS, ANY. Default: IN
   name: 'google.com' // which record are you looking for
 }
 ```
@@ -101,6 +103,7 @@ And an answers, additional, or authority looks like this
 ``` js
 {
   type: 'A', // or SRV, AAAA, etc
+  class: 'IN', // one of IN, CS, CH, HS
   name: 'google.com', // which name is this record for
   ttl: optionalTimeToLiveInSeconds,
   (record specific data, see below)
