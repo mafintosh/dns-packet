@@ -175,11 +175,8 @@ rns.decode = function (buf, offset) {
   if (!offset) offset = 0
 
   var len = buf.readUInt16BE(offset)
-  
   var dd = name.decode(buf, offset + 2)
-  //var data = buf.slice(offset + 2, offset + 2 + len)
-  //console.log(data.toString)
-  //var prefix = data.toString('ascii', 1, data.length - 2)
+
   rns.decode.bytes = len + 2
   return dd
 }
@@ -192,14 +189,13 @@ rsoa.decode = function (buf, offset) {
   if (!offset) offset = 0
 
   var len = buf.readUInt16BE(offset)
-  
   var dd = name.decode(buf, offset + 2)
-  var dd1 = name.decode(buf, offset + 2 + dd.length + 2);
+  var dd1 = name.decode(buf, offset + 2 + dd.length + 2)
 
   rsoa.decode.bytes = len + 2
   return {
-    'primary' : dd,
-    'mail' : dd1
+    'primary': dd,
+    'mail': dd1
   }
 }
 
