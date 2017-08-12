@@ -337,13 +337,11 @@ rcaa.encode = function (data, buf, offset) {
 
   if (data.issuerCritical) {
     data.flags = rcaa.ISSUER_CRITICAL
-  } else {
-    data.flags = 0
   }
 
   buf.writeUInt16BE(len - 2, offset)
   offset += 2
-  buf.writeUInt8(data.flags, offset)
+  buf.writeUInt8(data.flags || 0, offset)
   offset += 1
   string.encode(data.tag, buf, offset)
   offset += string.encode.bytes
