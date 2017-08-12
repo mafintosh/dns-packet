@@ -169,6 +169,38 @@ runknown.encodingLength = function (data) {
   return data.length + 2
 }
 
+var rns = exports.rns = {}
+
+rns.decode = function (buf, offset) {
+  if (!offset) offset = 0
+
+  var len = buf.readUInt16BE(offset)
+  var dd = name.decode(buf, offset + 2)
+
+  rns.decode.bytes = len + 2
+  return dd
+}
+
+rns.decode.bytes = 0
+
+var rsoa = exports.rsoa = {}
+
+rsoa.decode = function (buf, offset) {
+  if (!offset) offset = 0
+
+  var len = buf.readUInt16BE(offset)
+  var dd = name.decode(buf, offset + 2)
+  var dd1 = name.decode(buf, offset + 2 + dd.length + 2)
+
+  rsoa.decode.bytes = len + 2
+  return {
+    'primary': dd,
+    'mail': dd1
+  }
+}
+
+rsoa.decode.bytes = 0
+
 var rtxt = exports.txt = exports.null = {}
 var rnull = rtxt
 
@@ -396,6 +428,8 @@ var renc = exports.record = function (type) {
     case 'AAAA': return raaaa
     case 'SRV': return rsrv
     case 'HINFO': return rhinfo
+    case 'NS': return rns
+    case 'SOA': return rsoa
   }
   return runknown
 }
