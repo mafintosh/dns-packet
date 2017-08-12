@@ -47,6 +47,8 @@ tape('srv', function (t) {
 
 tape('caa', function (t) {
   testEncoder(t, packet.caa, {flags: 128, tag: 'issue', value: 'letsencrypt.org', issuerCritical: true})
+  testEncoder(t, packet.caa, {tag: 'issue', value: 'letsencrypt.org', issuerCritical: true})
+  testEncoder(t, packet.caa, {tag: 'issue', value: 'letsencrypt.org'})
   t.end()
 })
 
