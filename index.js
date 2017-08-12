@@ -327,11 +327,17 @@ rsrv.encodingLength = function (data) {
 
 var rcaa = exports.caa = {}
 
+rcaa.ISSUER_CRITICAL = 1 << 7
+
 rcaa.encode = function (data, buf, offset) {
   var len = rcaa.encodingLength(data)
 
   if (!buf) buf = Buffer.allocUnsafe(rcaa.encodingLength(data))
   if (!offset) offset = 0
+
+  if (data.issuerCritical) {
+    data.flags = rcaa.ISSUER_CRITICAL
+  }
 
   buf.writeUInt16BE(len - 2, offset)
   offset += 2
@@ -361,6 +367,8 @@ rcaa.decode = function (buf, offset) {
   data.tag = string.decode(buf, offset)
   offset += string.decode.bytes
   data.value = buf.toString('utf-8', offset, oldOffset + len)
+
+  data.issuerCritical = !!(data.flags & rcaa.ISSUER_CRITICAL)
 
   rcaa.decode.bytes = len + 2
 
