@@ -337,6 +337,8 @@ rcaa.encode = function (data, buf, offset) {
 
   if (data.issuerCritical) {
     data.flags = rcaa.ISSUER_CRITICAL
+  } else {
+    data.flags = 0
   }
 
   buf.writeUInt16BE(len - 2, offset)
