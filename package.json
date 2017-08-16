@@ -30,6 +30,10 @@
     "encoder",
     "abstract-encoding"
   ],
+  "files": [
+    "index.js",
+    "types.js"
+  ],
   "author": "Mathias Buus",
   "license": "MIT"
 }
