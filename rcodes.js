@@ -22,7 +22,7 @@ exports.toString = function (rcode) {
     case 14: return 'RCODE_14'
     case 15: return 'RCODE_15'
   }
-  return 'RCODE_' + type
+  return 'RCODE_' + rcode
 }
 
 exports.toRcode = function (code) {
