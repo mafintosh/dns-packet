@@ -199,6 +199,31 @@ Currently the different available records are
 }
 ```
 
+#### `NS`
+
+``` js
+{
+  data: 'ns.example.net'
+}
+```
+
+#### `SOA`
+
+``` js
+{
+  data: {
+    mname: 'ns.example.net',
+    rname: 'root.ns.example.net',
+    serial: 2018010400,
+    refresh: 14400,
+    retry: 3600,
+    expire: 604800,
+    minimum: 3600
+  }
+}
+```
+
+
 If you need another one, open an issue and we'll try to add it.
 
 ## License
