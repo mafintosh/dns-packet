@@ -169,6 +169,98 @@ runknown.encodingLength = function (data) {
   return data.length + 2
 }
 
+var rns = exports.ns = {}
+
+rns.encode = function (data, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(rns.encodingLength(data))
+  if (!offset) offset = 0
+
+  name.encode(data, buf, offset + 2)
+  buf.writeUInt16BE(name.encode.bytes, offset)
+  rns.encode.bytes = name.encode.bytes + 2
+  return buf
+}
+
+rns.encode.bytes = 0
+
+rns.decode = function (buf, offset) {
+  if (!offset) offset = 0
+
+  var len = buf.readUInt16BE(offset)
+  var dd = name.decode(buf, offset + 2)
+
+  rns.decode.bytes = len + 2
+  return dd
+}
+
+rns.decode.bytes = 0
+
+rns.encodingLength = function (data) {
+  return name.encodingLength(data) + 2
+}
+
+var rsoa = exports.soa = {}
+
+rsoa.encode = function (data, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(rsoa.encodingLength(data))
+  if (!offset) offset = 0
+
+  var oldOffset = offset
+  offset += 2
+  name.encode(data.mname, buf, offset)
+  offset += name.encode.bytes
+  name.encode(data.rname, buf, offset)
+  offset += name.encode.bytes
+  buf.writeUInt32BE(data.serial || 0, offset)
+  offset += 4
+  buf.writeUInt32BE(data.refresh || 0, offset)
+  offset += 4
+  buf.writeUInt32BE(data.retry || 0, offset)
+  offset += 4
+  buf.writeUInt32BE(data.expire || 0, offset)
+  offset += 4
+  buf.writeUInt32BE(data.minimum || 0, offset)
+  offset += 4
+
+  buf.writeUInt16BE(offset - oldOffset - 2, oldOffset)
+  rsoa.encode.bytes = offset - oldOffset
+  return buf
+}
+
+rsoa.encode.bytes = 0
+
+rsoa.decode = function (buf, offset) {
+  if (!offset) offset = 0
+
+  var oldOffset = offset
+
+  var data = {}
+  offset += 2
+  data.mname = name.decode(buf, offset)
+  offset += name.decode.bytes
+  data.rname = name.decode(buf, offset)
+  offset += name.decode.bytes
+  data.serial = buf.readUInt32BE(offset)
+  offset += 4
+  data.refresh = buf.readUInt32BE(offset)
+  offset += 4
+  data.retry = buf.readUInt32BE(offset)
+  offset += 4
+  data.expire = buf.readUInt32BE(offset)
+  offset += 4
+  data.minimum = buf.readUInt32BE(offset)
+  offset += 4
+
+  rsoa.decode.bytes = offset - oldOffset
+  return data
+}
+
+rsoa.decode.bytes = 0
+
+rsoa.encodingLength = function (data) {
+  return 22 + name.encodingLength(data.mname) + name.encodingLength(data.rname)
+}
+
 var rtxt = exports.txt = exports.null = {}
 var rnull = rtxt
 
@@ -453,6 +545,8 @@ var renc = exports.record = function (type) {
     case 'SRV': return rsrv
     case 'HINFO': return rhinfo
     case 'CAA': return rcaa
+    case 'NS': return rns
+    case 'SOA': return rsoa
   }
   return runknown
 }

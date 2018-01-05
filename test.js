@@ -52,6 +52,24 @@ tape('caa', function (t) {
   t.end()
 })
 
+tape('ns', function (t) {
+  testEncoder(t, packet.ns, 'ns.world.com')
+  t.end()
+})
+
+tape('soa', function (t) {
+  testEncoder(t, packet.soa, {
+    mname: 'hello.world.com',
+    rname: 'root.hello.world.com',
+    serial: 2018010400,
+    refresh: 14400,
+    retry: 3600,
+    expire: 604800,
+    minimum: 3600
+  })
+  t.end()
+})
+
 tape('a', function (t) {
   testEncoder(t, packet.a, '127.0.0.1')
   t.end()
