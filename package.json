@@ -32,7 +32,8 @@
   ],
   "files": [
     "index.js",
-    "types.js"
+    "types.js",
+    "rcodes.js"
   ],
   "author": "Mathias Buus",
   "license": "MIT"
