@@ -1,5 +1,6 @@
 var tape = require('tape')
 var packet = require('./')
+var rcodes = require('./rcodes')
 var Buffer = require('safe-buffer').Buffer
 
 tape('unknown', function (t) {
@@ -170,6 +171,14 @@ tape('response', function (t) {
     }]
   })
 
+  t.end()
+})
+
+tape('rcode', function (t) {
+  for (var rString of ['NOERROR', 'FORMERR', 'SERVFAIL', 'NXDOMAIN', 'NOTIMP', 'REFUSED', 'YXDOMAIN', 'YXRRSET', 'NXRRSET', 'NOTAUTH', 'NOTZONE', 'RCODE_11', 'RCODE_12', 'RCODE_13', 'RCODE_14', 'RCODE_15']) {
+    var code = rcodes.toRcode(rString)
+    t.ok(rString === rcodes.toString(code), 'rcode conversion from/to string matches: ' + rcodes.toString(code))
+  }
   t.end()
 })
 
