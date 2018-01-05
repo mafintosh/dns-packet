@@ -175,9 +175,10 @@ tape('response', function (t) {
 })
 
 tape('rcode', function (t) {
-  for (var rString of ['NOERROR', 'FORMERR', 'SERVFAIL', 'NXDOMAIN', 'NOTIMP', 'REFUSED', 'YXDOMAIN', 'YXRRSET', 'NXRRSET', 'NOTAUTH', 'NOTZONE', 'RCODE_11', 'RCODE_12', 'RCODE_13', 'RCODE_14', 'RCODE_15']) {
-    var code = rcodes.toRcode(rString)
-    t.ok(rString === rcodes.toString(code), 'rcode conversion from/to string matches: ' + rcodes.toString(code))
+  const errors = ['NOERROR', 'FORMERR', 'SERVFAIL', 'NXDOMAIN', 'NOTIMP', 'REFUSED', 'YXDOMAIN', 'YXRRSET', 'NXRRSET', 'NOTAUTH', 'NOTZONE', 'RCODE_11', 'RCODE_12', 'RCODE_13', 'RCODE_14', 'RCODE_15']
+  for (var i in errors) {
+    var code = rcodes.toRcode(errors[i])
+    t.ok(errors[i] === rcodes.toString(code), 'rcode conversion from/to string matches: ' + rcodes.toString(code))
   }
   t.end()
 })
