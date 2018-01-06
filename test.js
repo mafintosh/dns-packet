@@ -180,6 +180,28 @@ tape('rcode', function (t) {
     var code = rcodes.toRcode(errors[i])
     t.ok(errors[i] === rcodes.toString(code), 'rcode conversion from/to string matches: ' + rcodes.toString(code))
   }
+
+  var buf = packet.encode({
+    type: 'response',
+    id: 45632,
+    flags: 0x8480,
+    answers: [{
+      type: 'A',
+      name: 'hello.example.net',
+      data: '127.0.0.1'
+    }]
+  })
+  var val = packet.decode(buf)
+  t.ok(val.type === 'response', 'decode type')
+  t.ok(val.opcode === 0, 'decode opcode')
+  t.ok(val.flag_auth === 1, 'decode flag_auth')
+  t.ok(val.flag_trunc === 0, 'decode flag_trunc')
+  t.ok(val.flag_rd === 0, 'decode flag_rd')
+  t.ok(val.flag_ra === 1, 'decode flag_ra')
+  t.ok(val.flag_z === 0, 'decode flag_z')
+  t.ok(val.flag_ad === 0, 'decode flag_ad')
+  t.ok(val.flag_cd === 0, 'decode flag_cd')
+  t.ok(val.rcode === 'NOERROR', 'decode rcode')
   t.end()
 })
 
