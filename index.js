@@ -1,5 +1,6 @@
 var types = require('./types')
 var rcodes = require('./rcodes')
+var opcodes = require('./opcodes')
 var ip = require('ip')
 var Buffer = require('safe-buffer').Buffer
 
@@ -128,7 +129,7 @@ header.decode = function (buf, offset) {
     type: flags & RESPONSE_FLAG ? 'response' : 'query',
     flags: flags & 32767,
     flag_qr: ((flags >> 15) & 0x1) === 1,
-    opcode: (flags >> 11) & 0xf,
+    opcode: opcodes.toString((flags >> 11) & 0xf),
     flag_auth: ((flags >> 10) & 0x1) === 1,
     flag_trunc: ((flags >> 9) & 0x1) === 1,
     flag_rd: ((flags >> 8) & 0x1) === 1,

@@ -1,6 +1,7 @@
 var tape = require('tape')
 var packet = require('./')
 var rcodes = require('./rcodes')
+var opcodes = require('./opcodes')
 var Buffer = require('safe-buffer').Buffer
 
 tape('unknown', function (t) {
@@ -181,6 +182,12 @@ tape('rcode', function (t) {
     t.ok(errors[i] === rcodes.toString(code), 'rcode conversion from/to string matches: ' + rcodes.toString(code))
   }
 
+  const ops = ['QUERY', 'IQUERY', 'STATUS', 'OPCODE_3', 'NOTIFY', 'UPDATE', 'OPCODE_6', 'OPCODE_7', 'OPCODE_8', 'OPCODE_9', 'OPCODE_10', 'OPCODE_11', 'OPCODE_12', 'OPCODE_13', 'OPCODE_14', 'OPCODE_15']
+  for (i in ops) {
+    code = opcodes.toOpcode(ops[i])
+    t.ok(ops[i] === opcodes.toString(code), 'opcode conversion from/to string matches: ' + opcodes.toString(code))
+  }
+
   var buf = packet.encode({
     type: 'response',
     id: 45632,
@@ -193,7 +200,7 @@ tape('rcode', function (t) {
   })
   var val = packet.decode(buf)
   t.ok(val.type === 'response', 'decode type')
-  t.ok(val.opcode === 0, 'decode opcode')
+  t.ok(val.opcode === 'QUERY', 'decode opcode')
   t.ok(val.flag_qr === true, 'decode flag_auth')
   t.ok(val.flag_auth === true, 'decode flag_auth')
   t.ok(val.flag_trunc === false, 'decode flag_trunc')
