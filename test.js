@@ -173,6 +173,38 @@ tape('response', function (t) {
   t.end()
 })
 
+tape('name_encoding', function (t) {
+  var data = 'foo.example.com'
+  var buf = Buffer.allocUnsafe(255)
+  var offset = 0
+  packet.name.encode(data, buf, offset)
+  t.ok(packet.name.encode.bytes === 17, 'name encoding length matches')
+  var dd = packet.name.decode(buf, offset)
+  t.ok(data === dd, 'encode/decode matches')
+  offset += packet.name.encode.bytes
+
+  data = 'com'
+  packet.name.encode(data, buf, offset)
+  t.ok(packet.name.encode.bytes === 5, 'name encoding length matches')
+  dd = packet.name.decode(buf, offset)
+  t.ok(data === dd, 'encode/decode matches')
+  offset += packet.name.encode.bytes
+
+  data = 'example.com.'
+  packet.name.encode(data, buf, offset)
+  t.ok(packet.name.encode.bytes === 13, 'name encoding length matches')
+  dd = packet.name.decode(buf, offset)
+  t.ok(data.slice(0, -1) === dd, 'encode/decode matches')
+  offset += packet.name.encode.bytes
+
+  data = '.'
+  packet.name.encode(data, buf, offset)
+  t.ok(packet.name.encode.bytes === 1, 'name encoding length matches')
+  dd = packet.name.decode(buf, offset)
+  t.ok(data === dd, 'encode/decode matches')
+  t.end()
+})
+
 function testEncoder (t, packet, val) {
   var buf = packet.encode(val)
   var val2 = packet.decode(buf)

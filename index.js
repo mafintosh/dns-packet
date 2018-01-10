@@ -9,19 +9,23 @@ var NOT_FLUSH_MASK = ~FLUSH_MASK
 var QU_MASK = 1 << 15
 var NOT_QU_MASK = ~QU_MASK
 
-var name = {}
+var name = exports.txt = exports.name = {}
 
-name.encode = function (n, buf, offset) {
+name.encode = function (str, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(name.encodingLength(n))
   if (!offset) offset = 0
-
-  var list = n.split('.')
   var oldOffset = offset
 
-  for (var i = 0; i < list.length; i++) {
-    var len = buf.write(list[i], offset + 1)
-    buf[offset] = len
-    offset += len + 1
+  // strip leading and trailing .
+  const n = str.replace(/^\.|\.$/gm, '')
+  if (n.length) {
+    const list = n.split('.')
+
+    for (var i = 0; i < list.length; i++) {
+      var len = buf.write(list[i], offset + 1)
+      buf[offset] = len
+      offset += len + 1
+    }
   }
 
   buf[offset++] = 0
@@ -39,6 +43,10 @@ name.decode = function (buf, offset) {
   var oldOffset = offset
   var len = buf[offset++]
 
+  if (len === 0) {
+    name.decode.bytes = 1
+    return '.'
+  }
   if (len >= 0xc0) {
     var res = name.decode(buf, buf.readUInt16BE(offset - 1) - 0xc000)
     name.decode.bytes = 2
