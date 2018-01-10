@@ -1,5 +1,7 @@
 var tape = require('tape')
 var packet = require('./')
+var rcodes = require('./rcodes')
+var opcodes = require('./opcodes')
 var Buffer = require('safe-buffer').Buffer
 
 tape('unknown', function (t) {
@@ -170,6 +172,44 @@ tape('response', function (t) {
     }]
   })
 
+  t.end()
+})
+
+tape('rcode', function (t) {
+  const errors = ['NOERROR', 'FORMERR', 'SERVFAIL', 'NXDOMAIN', 'NOTIMP', 'REFUSED', 'YXDOMAIN', 'YXRRSET', 'NXRRSET', 'NOTAUTH', 'NOTZONE', 'RCODE_11', 'RCODE_12', 'RCODE_13', 'RCODE_14', 'RCODE_15']
+  for (var i in errors) {
+    var code = rcodes.toRcode(errors[i])
+    t.ok(errors[i] === rcodes.toString(code), 'rcode conversion from/to string matches: ' + rcodes.toString(code))
+  }
+
+  const ops = ['QUERY', 'IQUERY', 'STATUS', 'OPCODE_3', 'NOTIFY', 'UPDATE', 'OPCODE_6', 'OPCODE_7', 'OPCODE_8', 'OPCODE_9', 'OPCODE_10', 'OPCODE_11', 'OPCODE_12', 'OPCODE_13', 'OPCODE_14', 'OPCODE_15']
+  for (i in ops) {
+    code = opcodes.toOpcode(ops[i])
+    t.ok(ops[i] === opcodes.toString(code), 'opcode conversion from/to string matches: ' + opcodes.toString(code))
+  }
+
+  var buf = packet.encode({
+    type: 'response',
+    id: 45632,
+    flags: 0x8480,
+    answers: [{
+      type: 'A',
+      name: 'hello.example.net',
+      data: '127.0.0.1'
+    }]
+  })
+  var val = packet.decode(buf)
+  t.ok(val.type === 'response', 'decode type')
+  t.ok(val.opcode === 'QUERY', 'decode opcode')
+  t.ok(val.flag_qr === true, 'decode flag_auth')
+  t.ok(val.flag_auth === true, 'decode flag_auth')
+  t.ok(val.flag_trunc === false, 'decode flag_trunc')
+  t.ok(val.flag_rd === false, 'decode flag_rd')
+  t.ok(val.flag_ra === true, 'decode flag_ra')
+  t.ok(val.flag_z === false, 'decode flag_z')
+  t.ok(val.flag_ad === false, 'decode flag_ad')
+  t.ok(val.flag_cd === false, 'decode flag_cd')
+  t.ok(val.rcode === 'NOERROR', 'decode rcode')
   t.end()
 })
 
