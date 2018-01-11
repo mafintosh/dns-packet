@@ -183,9 +183,9 @@ tape('rcode', function (t) {
   }
 
   const ops = ['QUERY', 'IQUERY', 'STATUS', 'OPCODE_3', 'NOTIFY', 'UPDATE', 'OPCODE_6', 'OPCODE_7', 'OPCODE_8', 'OPCODE_9', 'OPCODE_10', 'OPCODE_11', 'OPCODE_12', 'OPCODE_13', 'OPCODE_14', 'OPCODE_15']
-  for (i in ops) {
-    code = opcodes.toOpcode(ops[i])
-    t.ok(ops[i] === opcodes.toString(code), 'opcode conversion from/to string matches: ' + opcodes.toString(code))
+  for (var j in ops) {
+    var ocode = opcodes.toOpcode(ops[j])
+    t.ok(ops[j] === opcodes.toString(ocode), 'opcode conversion from/to string matches: ' + opcodes.toString(ocode))
   }
 
   var buf = packet.encode({
@@ -245,30 +245,30 @@ tape('name_encoding', function (t) {
   t.end()
 })
 
-function testEncoder (t, packet, val) {
-  var buf = packet.encode(val)
-  var val2 = packet.decode(buf)
+function testEncoder (t, rpacket, val) {
+  var buf = rpacket.encode(val)
+  var val2 = rpacket.decode(buf)
 
-  t.same(buf.length, packet.encode.bytes, 'encode.bytes was set correctly')
-  t.same(buf.length, packet.encodingLength(val), 'encoding length matches')
+  t.same(buf.length, rpacket.encode.bytes, 'encode.bytes was set correctly')
+  t.same(buf.length, rpacket.encodingLength(val), 'encoding length matches')
   t.ok(compare(t, val, val2), 'decoded object match')
 
-  var buf2 = packet.encode(val2)
-  var val3 = packet.decode(buf2)
+  var buf2 = rpacket.encode(val2)
+  var val3 = rpacket.decode(buf2)
 
-  t.same(buf2.length, packet.encode.bytes, 'encode.bytes was set correctly on re-encode')
-  t.same(buf2.length, packet.encodingLength(val), 'encoding length matches on re-encode')
+  t.same(buf2.length, rpacket.encode.bytes, 'encode.bytes was set correctly on re-encode')
+  t.same(buf2.length, rpacket.encodingLength(val), 'encoding length matches on re-encode')
 
   t.ok(compare(t, val, val3), 'decoded object match on re-encode')
   t.ok(compare(t, val2, val3), 're-encoded decoded object match on re-encode')
 
   var bigger = Buffer.allocUnsafe(buf2.length + 10)
 
-  var buf3 = packet.encode(val, bigger, 10)
-  var val4 = packet.decode(buf3, 10)
+  var buf3 = rpacket.encode(val, bigger, 10)
+  var val4 = rpacket.decode(buf3, 10)
 
   t.ok(buf3 === bigger, 'echoes buffer on external buffer')
-  t.same(packet.encode.bytes, buf.length, 'encode.bytes is the same on external buffer')
+  t.same(rpacket.encode.bytes, buf.length, 'encode.bytes is the same on external buffer')
   t.ok(compare(t, val, val4), 'decoded object match on external buffer')
 }
 
