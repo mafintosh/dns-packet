@@ -11,11 +11,12 @@
     "safe-buffer": "^5.0.1"
   },
   "devDependencies": {
+    "eslint": "^4.15.0",
     "standard": "^6.0.5",
     "tape": "^4.4.0"
   },
   "scripts": {
-    "test": "standard && tape test.js"
+    "test": "standard && eslint --color *.js && tape test.js"
   },
   "bugs": {
     "url": "https://github.com/mafintosh/dns-packet/issues"

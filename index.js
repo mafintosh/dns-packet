@@ -14,14 +14,14 @@ var NOT_QU_MASK = ~QU_MASK
 var name = exports.txt = exports.name = {}
 
 name.encode = function (str, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(name.encodingLength(n))
+  if (!buf) buf = Buffer.allocUnsafe(name.encodingLength(str))
   if (!offset) offset = 0
   var oldOffset = offset
 
   // strip leading and trailing .
-  const n = str.replace(/^\.|\.$/gm, '')
+  var n = str.replace(/^\.|\.$/gm, '')
   if (n.length) {
-    const list = n.split('.')
+    var list = n.split('.')
 
     for (var i = 0; i < list.length; i++) {
       var len = buf.write(list[i], offset + 1)
@@ -155,7 +155,7 @@ header.decode = function (buf, offset) {
 
 header.decode.bytes = 12
 
-header.encodingLength = function (h) {
+header.encodingLength = function () {
   return 12
 }
 
@@ -519,7 +519,7 @@ ra.decode = function (buf, offset) {
 
 ra.decode.bytes = 0
 
-ra.encodingLength = function (host) {
+ra.encodingLength = function () {
   return 6
 }
 
@@ -549,7 +549,7 @@ raaaa.decode = function (buf, offset) {
 
 raaaa.decode.bytes = 0
 
-raaaa.encodingLength = function (host) {
+raaaa.encodingLength = function () {
   return 18
 }
 
