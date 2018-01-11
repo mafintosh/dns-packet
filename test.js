@@ -1,8 +1,10 @@
-var tape = require('tape')
-var packet = require('./')
-var rcodes = require('./rcodes')
-var opcodes = require('./opcodes')
-var Buffer = require('safe-buffer').Buffer
+'use strict'
+
+const tape = require('tape')
+const packet = require('./')
+const rcodes = require('./rcodes')
+const opcodes = require('./opcodes')
+const Buffer = require('safe-buffer').Buffer
 
 tape('unknown', function (t) {
   testEncoder(t, packet.unknown, Buffer.from('hello world'))
@@ -176,19 +178,19 @@ tape('response', function (t) {
 })
 
 tape('rcode', function (t) {
-  var errors = ['NOERROR', 'FORMERR', 'SERVFAIL', 'NXDOMAIN', 'NOTIMP', 'REFUSED', 'YXDOMAIN', 'YXRRSET', 'NXRRSET', 'NOTAUTH', 'NOTZONE', 'RCODE_11', 'RCODE_12', 'RCODE_13', 'RCODE_14', 'RCODE_15']
-  for (var i in errors) {
-    var code = rcodes.toRcode(errors[i])
+  const errors = ['NOERROR', 'FORMERR', 'SERVFAIL', 'NXDOMAIN', 'NOTIMP', 'REFUSED', 'YXDOMAIN', 'YXRRSET', 'NXRRSET', 'NOTAUTH', 'NOTZONE', 'RCODE_11', 'RCODE_12', 'RCODE_13', 'RCODE_14', 'RCODE_15']
+  for (const i in errors) {
+    const code = rcodes.toRcode(errors[i])
     t.ok(errors[i] === rcodes.toString(code), 'rcode conversion from/to string matches: ' + rcodes.toString(code))
   }
 
-  var ops = ['QUERY', 'IQUERY', 'STATUS', 'OPCODE_3', 'NOTIFY', 'UPDATE', 'OPCODE_6', 'OPCODE_7', 'OPCODE_8', 'OPCODE_9', 'OPCODE_10', 'OPCODE_11', 'OPCODE_12', 'OPCODE_13', 'OPCODE_14', 'OPCODE_15']
-  for (var j in ops) {
-    var ocode = opcodes.toOpcode(ops[j])
+  const ops = ['QUERY', 'IQUERY', 'STATUS', 'OPCODE_3', 'NOTIFY', 'UPDATE', 'OPCODE_6', 'OPCODE_7', 'OPCODE_8', 'OPCODE_9', 'OPCODE_10', 'OPCODE_11', 'OPCODE_12', 'OPCODE_13', 'OPCODE_14', 'OPCODE_15']
+  for (const j in ops) {
+    const ocode = opcodes.toOpcode(ops[j])
     t.ok(ops[j] === opcodes.toString(ocode), 'opcode conversion from/to string matches: ' + opcodes.toString(ocode))
   }
 
-  var buf = packet.encode({
+  const buf = packet.encode({
     type: 'response',
     id: 45632,
     flags: 0x8480,
@@ -198,7 +200,7 @@ tape('rcode', function (t) {
       data: '127.0.0.1'
     }]
   })
-  var val = packet.decode(buf)
+  const val = packet.decode(buf)
   t.ok(val.type === 'response', 'decode type')
   t.ok(val.opcode === 'QUERY', 'decode opcode')
   t.ok(val.flag_qr === true, 'decode flag_auth')
@@ -214,12 +216,12 @@ tape('rcode', function (t) {
 })
 
 tape('name_encoding', function (t) {
-  var data = 'foo.example.com'
-  var buf = Buffer.allocUnsafe(255)
-  var offset = 0
+  let data = 'foo.example.com'
+  const buf = Buffer.allocUnsafe(255)
+  let offset = 0
   packet.name.encode(data, buf, offset)
   t.ok(packet.name.encode.bytes === 17, 'name encoding length matches')
-  var dd = packet.name.decode(buf, offset)
+  let dd = packet.name.decode(buf, offset)
   t.ok(data === dd, 'encode/decode matches')
   offset += packet.name.encode.bytes
 
@@ -246,15 +248,15 @@ tape('name_encoding', function (t) {
 })
 
 function testEncoder (t, rpacket, val) {
-  var buf = rpacket.encode(val)
-  var val2 = rpacket.decode(buf)
+  const buf = rpacket.encode(val)
+  const val2 = rpacket.decode(buf)
 
   t.same(buf.length, rpacket.encode.bytes, 'encode.bytes was set correctly')
   t.same(buf.length, rpacket.encodingLength(val), 'encoding length matches')
   t.ok(compare(t, val, val2), 'decoded object match')
 
-  var buf2 = rpacket.encode(val2)
-  var val3 = rpacket.decode(buf2)
+  const buf2 = rpacket.encode(val2)
+  const val3 = rpacket.decode(buf2)
 
   t.same(buf2.length, rpacket.encode.bytes, 'encode.bytes was set correctly on re-encode')
   t.same(buf2.length, rpacket.encodingLength(val), 'encoding length matches on re-encode')
@@ -262,10 +264,10 @@ function testEncoder (t, rpacket, val) {
   t.ok(compare(t, val, val3), 'decoded object match on re-encode')
   t.ok(compare(t, val2, val3), 're-encoded decoded object match on re-encode')
 
-  var bigger = Buffer.allocUnsafe(buf2.length + 10)
+  const bigger = Buffer.allocUnsafe(buf2.length + 10)
 
-  var buf3 = rpacket.encode(val, bigger, 10)
-  var val4 = rpacket.decode(buf3, 10)
+  const buf3 = rpacket.encode(val, bigger, 10)
+  const val4 = rpacket.decode(buf3, 10)
 
   t.ok(buf3 === bigger, 'echoes buffer on external buffer')
   t.same(rpacket.encode.bytes, buf.length, 'encode.bytes is the same on external buffer')
@@ -275,8 +277,8 @@ function testEncoder (t, rpacket, val) {
 function compare (t, a, b) {
   if (Buffer.isBuffer(a)) return a.toString('hex') === b.toString('hex')
   if (typeof a === 'object' && a && b) {
-    var keys = Object.keys(a)
-    for (var i = 0; i < keys.length; i++) {
+    const keys = Object.keys(a)
+    for (let i = 0; i < keys.length; i++) {
       if (!compare(t, a[keys[i]], b[keys[i]])) return false
     }
   } else {

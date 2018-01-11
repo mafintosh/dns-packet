@@ -1,3 +1,5 @@
+'use strict'
+
 exports.toString = function (type) {
   switch (type) {
     case 1: return 'A'

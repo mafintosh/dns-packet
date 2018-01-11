@@ -1,5 +1,11 @@
 root: true
 
+parserOptions:
+  ecmaVersion: 2017
+
+env:
+  node: true
+
 rules:
   accessor-pairs: [2]
   array-bracket-newline: [0]
@@ -182,7 +188,7 @@ rules:
   no-useless-concat: [2]
   no-useless-constructor: [2]
   no-useless-escape: [2]
-  no-var: [0]
+  no-var: [2]
   no-warning-comments: [0]
   no-whitespace-before-property: [2]
   no-with: [2]
@@ -221,7 +227,7 @@ rules:
   space-infix-ops: [2]
   space-unary-ops: [2]
   spaced-comment: [2, always, {markers: ["!"]}]
-  strict: [0]
+  strict: [2]
   switch-colon-spacing: [2]
   symbol-description: [2]
   template-curly-spacing: [2, never]
@@ -233,6 +239,3 @@ rules:
   wrap-regex: [0]
   yield-star-spacing: [2, {before: true, after: false}]
   yoda: [2, never]
-
-env:
-  node: true

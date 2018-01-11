@@ -1,30 +1,32 @@
-var types = require('./types')
-var rcodes = require('./rcodes')
-var opcodes = require('./opcodes')
-var ip = require('ip')
-var Buffer = require('safe-buffer').Buffer
+'use strict'
 
-var QUERY_FLAG = 0
-var RESPONSE_FLAG = 1 << 15
-var FLUSH_MASK = 1 << 15
-var NOT_FLUSH_MASK = ~FLUSH_MASK
-var QU_MASK = 1 << 15
-var NOT_QU_MASK = ~QU_MASK
+const types = require('./types')
+const rcodes = require('./rcodes')
+const opcodes = require('./opcodes')
+const ip = require('ip')
+const Buffer = require('safe-buffer').Buffer
 
-var name = exports.txt = exports.name = {}
+const QUERY_FLAG = 0
+const RESPONSE_FLAG = 1 << 15
+const FLUSH_MASK = 1 << 15
+const NOT_FLUSH_MASK = ~FLUSH_MASK
+const QU_MASK = 1 << 15
+const NOT_QU_MASK = ~QU_MASK
+
+const name = exports.txt = exports.name = {}
 
 name.encode = function (str, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(name.encodingLength(str))
   if (!offset) offset = 0
-  var oldOffset = offset
+  const oldOffset = offset
 
   // strip leading and trailing .
-  var n = str.replace(/^\.|\.$/gm, '')
+  const n = str.replace(/^\.|\.$/gm, '')
   if (n.length) {
-    var list = n.split('.')
+    const list = n.split('.')
 
-    for (var i = 0; i < list.length; i++) {
-      var len = buf.write(list[i], offset + 1)
+    for (let i = 0; i < list.length; i++) {
+      const len = buf.write(list[i], offset + 1)
       buf[offset] = len
       offset += len + 1
     }
@@ -41,16 +43,16 @@ name.encode.bytes = 0
 name.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  var list = []
-  var oldOffset = offset
-  var len = buf[offset++]
+  const list = []
+  const oldOffset = offset
+  let len = buf[offset++]
 
   if (len === 0) {
     name.decode.bytes = 1
     return '.'
   }
   if (len >= 0xc0) {
-    var res = name.decode(buf, buf.readUInt16BE(offset - 1) - 0xc000)
+    const res = name.decode(buf, buf.readUInt16BE(offset - 1) - 0xc000)
     name.decode.bytes = 2
     return res
   }
@@ -77,13 +79,13 @@ name.encodingLength = function (n) {
   return Buffer.byteLength(n) + 2
 }
 
-var string = {}
+const string = {}
 
 string.encode = function (s, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(string.encodingLength(s))
   if (!offset) offset = 0
 
-  var len = buf.write(s, offset + 1)
+  const len = buf.write(s, offset + 1)
   buf[offset] = len
   string.encode.bytes = len + 1
   return buf
@@ -94,8 +96,8 @@ string.encode.bytes = 0
 string.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  var len = buf[offset]
-  var s = buf.toString('utf-8', offset + 1, offset + 1 + len)
+  const len = buf[offset]
+  const s = buf.toString('utf-8', offset + 1, offset + 1 + len)
   string.decode.bytes = len + 1
   return s
 }
@@ -106,14 +108,14 @@ string.encodingLength = function (s) {
   return Buffer.byteLength(s) + 1
 }
 
-var header = {}
+const header = {}
 
 header.encode = function (h, buf, offset) {
   if (!buf) buf = header.encodingLength(h)
   if (!offset) offset = 0
 
-  var flags = (h.flags || 0) & 32767
-  var type = h.type === 'response' ? RESPONSE_FLAG : QUERY_FLAG
+  const flags = (h.flags || 0) & 32767
+  const type = h.type === 'response' ? RESPONSE_FLAG : QUERY_FLAG
 
   buf.writeUInt16BE(h.id || 0, offset)
   buf.writeUInt16BE(flags | type, offset + 2)
@@ -130,7 +132,7 @@ header.encode.bytes = 12
 header.decode = function (buf, offset) {
   if (!offset) offset = 0
   if (buf.length < 12) throw new Error('Header must be 12 bytes')
-  var flags = buf.readUInt16BE(offset + 2)
+  const flags = buf.readUInt16BE(offset + 2)
 
   return {
     id: buf.readUInt16BE(offset),
@@ -159,7 +161,7 @@ header.encodingLength = function () {
   return 12
 }
 
-var runknown = exports.unknown = {}
+const runknown = exports.unknown = {}
 
 runknown.encode = function (data, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(runknown.encodingLength(data))
@@ -177,8 +179,8 @@ runknown.encode.bytes = 0
 runknown.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  var len = buf.readUInt16BE(offset)
-  var data = buf.slice(offset + 2, offset + 2 + len)
+  const len = buf.readUInt16BE(offset)
+  const data = buf.slice(offset + 2, offset + 2 + len)
   runknown.decode.bytes = len + 2
   return data
 }
@@ -189,7 +191,7 @@ runknown.encodingLength = function (data) {
   return data.length + 2
 }
 
-var rns = exports.ns = {}
+const rns = exports.ns = {}
 
 rns.encode = function (data, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(rns.encodingLength(data))
@@ -206,8 +208,8 @@ rns.encode.bytes = 0
 rns.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  var len = buf.readUInt16BE(offset)
-  var dd = name.decode(buf, offset + 2)
+  const len = buf.readUInt16BE(offset)
+  const dd = name.decode(buf, offset + 2)
 
   rns.decode.bytes = len + 2
   return dd
@@ -219,13 +221,13 @@ rns.encodingLength = function (data) {
   return name.encodingLength(data) + 2
 }
 
-var rsoa = exports.soa = {}
+const rsoa = exports.soa = {}
 
 rsoa.encode = function (data, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(rsoa.encodingLength(data))
   if (!offset) offset = 0
 
-  var oldOffset = offset
+  const oldOffset = offset
   offset += 2
   name.encode(data.mname, buf, offset)
   offset += name.encode.bytes
@@ -252,9 +254,9 @@ rsoa.encode.bytes = 0
 rsoa.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  var oldOffset = offset
+  const oldOffset = offset
 
-  var data = {}
+  const data = {}
   offset += 2
   data.mname = name.decode(buf, offset)
   offset += name.decode.bytes
@@ -281,8 +283,8 @@ rsoa.encodingLength = function (data) {
   return 22 + name.encodingLength(data.mname) + name.encodingLength(data.rname)
 }
 
-var rtxt = exports.txt = exports.null = {}
-var rnull = rtxt
+const rtxt = exports.txt = exports.null = {}
+const rnull = rtxt
 
 rtxt.encode = function (data, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(rtxt.encodingLength(data))
@@ -291,10 +293,10 @@ rtxt.encode = function (data, buf, offset) {
   if (typeof data === 'string') data = Buffer.from(data)
   if (!data) data = Buffer.allocUnsafe(0)
 
-  var oldOffset = offset
+  const oldOffset = offset
   offset += 2
 
-  var len = data.length
+  const len = data.length
   data.copy(buf, offset, 0, len)
   offset += len
 
@@ -307,12 +309,12 @@ rtxt.encode.bytes = 0
 
 rtxt.decode = function (buf, offset) {
   if (!offset) offset = 0
-  var oldOffset = offset
-  var len = buf.readUInt16BE(offset)
+  const oldOffset = offset
+  const len = buf.readUInt16BE(offset)
 
   offset += 2
 
-  var data = buf.slice(offset, offset + len)
+  const data = buf.slice(offset, offset + len)
   offset += len
 
   rtxt.decode.bytes = offset - oldOffset
@@ -326,13 +328,13 @@ rtxt.encodingLength = function (data) {
   return (Buffer.isBuffer(data) ? data.length : Buffer.byteLength(data)) + 2
 }
 
-var rhinfo = exports.hinfo = {}
+const rhinfo = exports.hinfo = {}
 
 rhinfo.encode = function (data, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(rhinfo.encodingLength(data))
   if (!offset) offset = 0
 
-  var oldOffset = offset
+  const oldOffset = offset
   offset += 2
   string.encode(data.cpu, buf, offset)
   offset += string.encode.bytes
@@ -348,9 +350,9 @@ rhinfo.encode.bytes = 0
 rhinfo.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  var oldOffset = offset
+  const oldOffset = offset
 
-  var data = {}
+  const data = {}
   offset += 2
   data.cpu = string.decode(buf, offset)
   offset += string.decode.bytes
@@ -366,9 +368,9 @@ rhinfo.encodingLength = function (data) {
   return string.encodingLength(data.cpu) + string.encodingLength(data.os) + 2
 }
 
-var rptr = exports.ptr = {}
-var rcname = exports.cname = rptr
-var rdname = exports.dname = rptr
+const rptr = exports.ptr = {}
+const rcname = exports.cname = rptr
+const rdname = exports.dname = rptr
 
 rptr.encode = function (data, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(rptr.encodingLength(data))
@@ -385,7 +387,7 @@ rptr.encode.bytes = 0
 rptr.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  var data = name.decode(buf, offset + 2)
+  const data = name.decode(buf, offset + 2)
   rptr.decode.bytes = name.decode.bytes + 2
   return data
 }
@@ -396,7 +398,7 @@ rptr.encodingLength = function (data) {
   return name.encodingLength(data) + 2
 }
 
-var rsrv = exports.srv = {}
+const rsrv = exports.srv = {}
 
 rsrv.encode = function (data, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(rsrv.encodingLength(data))
@@ -407,7 +409,7 @@ rsrv.encode = function (data, buf, offset) {
   buf.writeUInt16BE(data.port || 0, offset + 6)
   name.encode(data.target, buf, offset + 8)
 
-  var len = name.encode.bytes + 6
+  const len = name.encode.bytes + 6
   buf.writeUInt16BE(len, offset)
 
   rsrv.encode.bytes = len + 2
@@ -419,9 +421,9 @@ rsrv.encode.bytes = 0
 rsrv.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  var len = buf.readUInt16BE(offset)
+  const len = buf.readUInt16BE(offset)
 
-  var data = {}
+  const data = {}
   data.priority = buf.readUInt16BE(offset + 2)
   data.weight = buf.readUInt16BE(offset + 4)
   data.port = buf.readUInt16BE(offset + 6)
@@ -437,12 +439,12 @@ rsrv.encodingLength = function (data) {
   return 8 + name.encodingLength(data.target)
 }
 
-var rcaa = exports.caa = {}
+const rcaa = exports.caa = {}
 
 rcaa.ISSUER_CRITICAL = 1 << 7
 
 rcaa.encode = function (data, buf, offset) {
-  var len = rcaa.encodingLength(data)
+  const len = rcaa.encodingLength(data)
 
   if (!buf) buf = Buffer.allocUnsafe(rcaa.encodingLength(data))
   if (!offset) offset = 0
@@ -469,11 +471,11 @@ rcaa.encode.bytes = 0
 rcaa.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  var len = buf.readUInt16BE(offset)
+  const len = buf.readUInt16BE(offset)
   offset += 2
 
-  var oldOffset = offset
-  var data = {}
+  const oldOffset = offset
+  const data = {}
   data.flags = buf.readUInt8(offset)
   offset += 1
   data.tag = string.decode(buf, offset)
@@ -493,7 +495,7 @@ rcaa.encodingLength = function (data) {
   return string.encodingLength(data.tag) + string.encodingLength(data.value) + 2
 }
 
-var ra = exports.a = {}
+const ra = exports.a = {}
 
 ra.encode = function (host, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(ra.encodingLength(host))
@@ -512,7 +514,7 @@ ra.decode = function (buf, offset) {
   if (!offset) offset = 0
 
   offset += 2
-  var host = ip.toString(buf, offset, 4)
+  const host = ip.toString(buf, offset, 4)
   ra.decode.bytes = 6
   return host
 }
@@ -523,7 +525,7 @@ ra.encodingLength = function () {
   return 6
 }
 
-var raaaa = exports.aaaa = {}
+const raaaa = exports.aaaa = {}
 
 raaaa.encode = function (host, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(raaaa.encodingLength(host))
@@ -542,7 +544,7 @@ raaaa.decode = function (buf, offset) {
   if (!offset) offset = 0
 
   offset += 2
-  var host = ip.toString(buf, offset, 16)
+  const host = ip.toString(buf, offset, 16)
   raaaa.decode.bytes = 18
   return host
 }
@@ -553,7 +555,7 @@ raaaa.encodingLength = function () {
   return 18
 }
 
-var renc = exports.record = function (type) {
+const renc = exports.record = function (type) {
   switch (type.toUpperCase()) {
     case 'A': return ra
     case 'PTR': return rptr
@@ -571,26 +573,26 @@ var renc = exports.record = function (type) {
   return runknown
 }
 
-var answer = exports.answer = {}
+const answer = exports.answer = {}
 
 answer.encode = function (a, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(answer.encodingLength(a))
   if (!offset) offset = 0
 
-  var oldOffset = offset
+  const oldOffset = offset
 
   name.encode(a.name, buf, offset)
   offset += name.encode.bytes
 
   buf.writeUInt16BE(types.toType(a.type), offset)
 
-  var klass = a.class === undefined ? 1 : a.class
+  let klass = a.class === undefined ? 1 : a.class
   if (a.flush) klass |= FLUSH_MASK // the 1st bit of the class is the flush bit
   buf.writeUInt16BE(klass, offset + 2)
 
   buf.writeUInt32BE(a.ttl || 0, offset + 4)
 
-  var enc = renc(a.type)
+  const enc = renc(a.type)
   enc.encode(a.data, buf, offset + 8)
   offset += 8 + enc.encode.bytes
 
@@ -603,8 +605,8 @@ answer.encode.bytes = 0
 answer.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  var a = {}
-  var oldOffset = offset
+  const a = {}
+  const oldOffset = offset
 
   a.name = name.decode(buf, offset)
   offset += name.decode.bytes
@@ -615,7 +617,7 @@ answer.decode = function (buf, offset) {
   a.flush = !!(a.class & FLUSH_MASK)
   if (a.flush) a.class &= NOT_FLUSH_MASK
 
-  var enc = renc(a.type)
+  const enc = renc(a.type)
   a.data = enc.decode(buf, offset + 8)
   offset += 8 + enc.decode.bytes
 
@@ -629,13 +631,13 @@ answer.encodingLength = function (a) {
   return name.encodingLength(a.name) + 8 + renc(a.type).encodingLength(a.data)
 }
 
-var question = exports.question = {}
+const question = exports.question = {}
 
 question.encode = function (q, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(question.encodingLength(q))
   if (!offset) offset = 0
 
-  var oldOffset = offset
+  const oldOffset = offset
 
   name.encode(q.name, buf, offset)
   offset += name.encode.bytes
@@ -655,8 +657,8 @@ question.encode.bytes = 0
 question.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  var oldOffset = offset
-  var q = {}
+  const oldOffset = offset
+  const q = {}
 
   q.name = name.decode(buf, offset)
   offset += name.decode.bytes
@@ -667,7 +669,7 @@ question.decode = function (buf, offset) {
   q.class = buf.readUInt16BE(offset)
   offset += 2
 
-  var qu = !!(q.class & QU_MASK)
+  const qu = !!(q.class & QU_MASK)
   if (qu) q.class &= NOT_QU_MASK
 
   question.decode.bytes = offset - oldOffset
@@ -691,7 +693,7 @@ exports.encode = function (result, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(exports.encodingLength(result))
   if (!offset) offset = 0
 
-  var oldOffset = offset
+  const oldOffset = offset
 
   if (!result.questions) result.questions = []
   if (!result.answers) result.answers = []
@@ -716,8 +718,8 @@ exports.encode.bytes = 0
 exports.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  var oldOffset = offset
-  var result = header.decode(buf, offset)
+  const oldOffset = offset
+  const result = header.decode(buf, offset)
   offset += header.decode.bytes
 
   offset = decodeList(result.questions, question, buf, offset)
@@ -741,13 +743,13 @@ exports.encodingLength = function (result) {
 }
 
 function encodingLengthList (list, enc) {
-  var len = 0
-  for (var i = 0; i < list.length; i++) len += enc.encodingLength(list[i])
+  let len = 0
+  for (let i = 0; i < list.length; i++) len += enc.encodingLength(list[i])
   return len
 }
 
 function encodeList (list, enc, buf, offset) {
-  for (var i = 0; i < list.length; i++) {
+  for (let i = 0; i < list.length; i++) {
     enc.encode(list[i], buf, offset)
     offset += enc.encode.bytes
   }
@@ -755,7 +757,7 @@ function encodeList (list, enc, buf, offset) {
 }
 
 function decodeList (list, enc, buf, offset) {
-  for (var i = 0; i < list.length; i++) {
+  for (let i = 0; i < list.length; i++) {
     list[i] = enc.decode(buf, offset)
     offset += enc.decode.bytes
   }

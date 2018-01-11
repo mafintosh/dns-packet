@@ -1,9 +1,11 @@
-var packet = require('./')
-var dgram = require('dgram')
+'use strict'
 
-var socket = dgram.createSocket('udp4')
+const packet = require('./')
+const dgram = require('dgram')
 
-var buf = packet.encode({
+const socket = dgram.createSocket('udp4')
+
+const buf = packet.encode({
   type: 'query',
   id: 1,
   flags: packet.RECURSION_DESIRED,
