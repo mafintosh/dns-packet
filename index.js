@@ -3,6 +3,7 @@
 const types = require('./types')
 const rcodes = require('./rcodes')
 const opcodes = require('./opcodes')
+const classes = require('./classes')
 const ip = require('ip')
 const Buffer = require('safe-buffer').Buffer
 
@@ -586,7 +587,7 @@ answer.encode = function (a, buf, offset) {
 
   buf.writeUInt16BE(types.toType(a.type), offset)
 
-  let klass = a.class === undefined ? 1 : a.class
+  let klass = classes.toClass(a.class === undefined ? 'IN' : a.class)
   if (a.flush) klass |= FLUSH_MASK // the 1st bit of the class is the flush bit
   buf.writeUInt16BE(klass, offset + 2)
 
@@ -611,7 +612,7 @@ answer.decode = function (buf, offset) {
   a.name = name.decode(buf, offset)
   offset += name.decode.bytes
   a.type = types.toString(buf.readUInt16BE(offset))
-  a.class = buf.readUInt16BE(offset + 2)
+  a.class = classes.toString(buf.readUInt16BE(offset + 2))
   a.ttl = buf.readUInt32BE(offset + 4)
 
   a.flush = !!(a.class & FLUSH_MASK)
@@ -645,7 +646,7 @@ question.encode = function (q, buf, offset) {
   buf.writeUInt16BE(types.toType(q.type), offset)
   offset += 2
 
-  buf.writeUInt16BE(q.class === undefined ? 1 : q.class, offset)
+  buf.writeUInt16BE(classes.toClass(q.class === undefined ? 'IN' : q.class), offset)
   offset += 2
 
   question.encode.bytes = offset - oldOffset
@@ -666,7 +667,7 @@ question.decode = function (buf, offset) {
   q.type = types.toString(buf.readUInt16BE(offset))
   offset += 2
 
-  q.class = buf.readUInt16BE(offset)
+  q.class = classes.toString(buf.readUInt16BE(offset))
   offset += 2
 
   const qu = !!(q.class & QU_MASK)
