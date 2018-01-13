@@ -251,6 +251,33 @@ tape('name_encoding', function (t) {
   t.end()
 })
 
+tape('stream', function (t) {
+  const val = {
+    type: 'query',
+    id: 45632,
+    flags: 0x8480,
+    answers: [{
+      type: 'A',
+      name: 'test2.example.net',
+      data: '198.51.100.1'
+    }]
+  }
+  const buf = packet.streamEncode(val)
+  const val2 = packet.streamDecode(buf)
+
+  t.same(buf.length, packet.streamEncode.bytes, 'streamEncode.bytes was set correctly')
+  t.same(packet.streamDecode.bytes, packet.streamEncode.bytes, 'streamDecode.bytes was set correctly')
+  t.ok(compare(t, val2.type, val.type), 'streamDecoded type match')
+  t.ok(compare(t, val2.id, val.id), 'streamDecoded id match')
+  t.ok(parseInt(val2.flags) === parseInt(val.flags & 0x7FFF), 'streamDecoded flags match')
+  const answer = val.answers[0]
+  const answer2 = val2.answers[0]
+  t.ok(compare(t, answer.type, answer2.type), 'streamDecoded RR type match')
+  t.ok(compare(t, answer.name, answer2.name), 'streamDecoded RR name match')
+  t.ok(compare(t, answer.data, answer2.data), 'streamDecoded RR rdata match')
+  t.end()
+})
+
 function testEncoder (t, rpacket, val) {
   const buf = rpacket.encode(val)
   const val2 = rpacket.decode(buf)

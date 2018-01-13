@@ -743,6 +743,29 @@ exports.encodingLength = function (result) {
     encodingLengthList(result.additionals || [], answer)
 }
 
+exports.streamEncode = function (result) {
+  const len = exports.encodingLength(result)
+  const buf = Buffer.allocUnsafe(len + 2)
+  exports.encode(result, buf, 2)
+  buf.writeUInt16BE(len, 0)
+  exports.streamEncode.bytes = len + 2
+  return buf
+}
+
+exports.streamEncode.bytes = 0
+
+exports.streamDecode = function (buf) {
+  const len = buf.readUInt16BE(0)
+  if (buf.length < len) {
+    return {}
+  }
+  const result = exports.decode(buf, 2)
+  exports.streamDecode.bytes = exports.decode.bytes + 2
+  return result
+}
+
+exports.streamDecode.bytes = 0
+
 function encodingLengthList (list, enc) {
   let len = 0
   for (let i = 0; i < list.length; i++) len += enc.encodingLength(list[i])
