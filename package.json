@@ -33,6 +33,7 @@
     "index.js",
     "types.js",
     "rcodes.js",
-    "opcodes.js"
+    "opcodes.js",
+    "classes.js"
   ]
 }
