@@ -10,7 +10,7 @@
     "node": ">=4"
   },
   "scripts": {
-    "test": "standard && eslint --color *.js && tape test.js"
+    "test": "eslint --color *.js && tape test.js"
   },
   "dependencies": {
     "ip": "^1.1.5",
@@ -18,6 +18,11 @@
   },
   "devDependencies": {
     "eslint": "^4.15.0",
+    "eslint-config-standard": "^11.0.0-beta.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1",
     "standard": "^10.0.3",
     "tape": "^4.8.0"
   },
