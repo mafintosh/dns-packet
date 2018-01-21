@@ -132,9 +132,14 @@ Currently the different available records are
 
 ``` js
 {
-  data: Buffer('some text')
+  data: Buffer(...)
+}
+{
+  data: 'some string'
 }
 ```
+
+Note that `data` must be an array of byte-length prefixed strings and the end of the array is signalled by a length of zero.  When encoding, a Buffer is taken as is (assumption is that it is encoded correctly), while a string is converted.
 
 #### `NS`
 

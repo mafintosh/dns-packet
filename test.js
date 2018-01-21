@@ -18,6 +18,15 @@ tape('txt', function (t) {
   t.end()
 })
 
+tape('txt-string', function (t) {
+  const buf = packet.txt.encode('hi')
+  const val = packet.txt.decode(buf)
+  t.ok(val[0] === 2, 'length prefix')
+  t.ok(val.toString('utf8', 1, 3) === 'hi', 'data')
+  t.ok(val[3] === 0, 'end of array')
+  t.end()
+})
+
 tape('null', function (t) {
   testEncoder(t, packet.null, Buffer.from([0, 1, 2, 3, 4, 5]))
   t.end()

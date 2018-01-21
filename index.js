@@ -291,7 +291,14 @@ rtxt.encode = function (data, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(rtxt.encodingLength(data))
   if (!offset) offset = 0
 
-  if (typeof data === 'string') data = Buffer.from(data)
+  if (typeof data === 'string' && data.length > 0) {
+    const s = Buffer.from(data)
+    const slen = s.length
+    data = Buffer.allocUnsafe(s.length + 2)
+    data.writeInt8(slen, 0)
+    s.copy(data, 1, 0, slen)
+    data.writeInt8(0, slen + 1)
+  }
   if (!data) data = Buffer.allocUnsafe(0)
 
   const oldOffset = offset
@@ -326,6 +333,9 @@ rtxt.decode.bytes = 0
 
 rtxt.encodingLength = function (data) {
   if (!data) return 2
+  if (typeof data === 'string') {
+    return 2 + Buffer.byteLength(data) + 2
+  }
   return (Buffer.isBuffer(data) ? data.length : Buffer.byteLength(data)) + 2
 }
 
