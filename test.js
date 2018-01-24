@@ -12,23 +12,32 @@ tape('unknown', function (t) {
 })
 
 tape('txt', function (t) {
-  testEncoder(t, packet.txt, Buffer.allocUnsafe(0))
-  testEncoder(t, packet.txt, Buffer.from('hello world'))
-  testEncoder(t, packet.txt, Buffer.from([0, 1, 2, 3, 4, 5]))
+  testEncoder(t, packet.txt, ['hello world'])
+  testEncoder(t, packet.txt, ['hello', 'world'])
+  testEncoder(t, packet.txt, [Buffer.from([0, 1, 2, 3, 4, 5])])
+  testEncoder(t, packet.txt, ['a', 'b', Buffer.from([0, 1, 2, 3, 4, 5])])
   t.end()
 })
 
-tape('txt-string', function (t) {
+tape('txt-scalar-string', function (t) {
   const buf = packet.txt.encode('hi')
   const val = packet.txt.decode(buf)
-  t.ok(val[0] === 2, 'length prefix')
-  t.ok(val.toString('utf8', 1, 3) === 'hi', 'data')
-  t.ok(val[3] === 0, 'end of array')
+  t.ok(val.length === 1, 'array length')
+  t.ok(val[0].toString() === 'hi', 'data')
+  t.end()
+})
+
+tape('txt-scalar-buffer', function (t) {
+  const data = Buffer.from([0, 1, 2, 3, 4, 5])
+  const buf = packet.txt.encode(data)
+  const val = packet.txt.decode(buf)
+  t.ok(val.length === 1, 'array length')
+  t.ok(val[0].equals(data), 'data')
   t.end()
 })
 
 tape('null', function (t) {
-  testEncoder(t, packet.null, Buffer.from([0, 1, 2, 3, 4, 5]))
+  testEncoder(t, packet.null, [Buffer.from([0, 1, 2, 3, 4, 5])])
   t.end()
 })
 
@@ -183,7 +192,7 @@ tape('response', function (t) {
     answers: [{
       type: 'NULL',
       name: 'hello.null.com',
-      data: Buffer.from([1, 2, 3, 4, 5])
+      data: [Buffer.from([1, 2, 3, 4, 5])]
     }]
   })
 

@@ -288,25 +288,26 @@ const rtxt = exports.txt = exports.null = {}
 const rnull = rtxt
 
 rtxt.encode = function (data, buf, offset) {
+  if (!data) data = []
+  if (!Array.isArray(data)) data = [data]
+  for (let i = 0; i < data.length; i++) {
+    if (typeof data[i] === 'string') {
+      data[i] = Buffer.from(data[i])
+    }
+  }
+
   if (!buf) buf = Buffer.allocUnsafe(rtxt.encodingLength(data))
   if (!offset) offset = 0
-
-  if (typeof data === 'string' && data.length > 0) {
-    const s = Buffer.from(data)
-    const slen = s.length
-    data = Buffer.allocUnsafe(s.length + 2)
-    data.writeInt8(slen, 0)
-    s.copy(data, 1, 0, slen)
-    data.writeInt8(0, slen + 1)
-  }
-  if (!data) data = Buffer.allocUnsafe(0)
 
   const oldOffset = offset
   offset += 2
 
-  const len = data.length
-  data.copy(buf, offset, 0, len)
-  offset += len
+  data.forEach(function (d) {
+    buf[offset++] = d.length
+    d.copy(buf, offset, 0, d.length)
+    offset += d.length
+  })
+  buf[offset++] = 0
 
   buf.writeUInt16BE(offset - oldOffset - 2, oldOffset)
   rtxt.encode.bytes = offset - oldOffset
@@ -318,12 +319,14 @@ rtxt.encode.bytes = 0
 rtxt.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
-  const len = buf.readUInt16BE(offset)
-
   offset += 2
 
-  const data = buf.slice(offset, offset + len)
-  offset += len
+  let len
+  let data = []
+  while ((len = buf[offset++]) !== 0) {
+    data.push(buf.slice(offset, offset + len))
+    offset += len
+  }
 
   rtxt.decode.bytes = offset - oldOffset
   return data
@@ -332,11 +335,17 @@ rtxt.decode = function (buf, offset) {
 rtxt.decode.bytes = 0
 
 rtxt.encodingLength = function (data) {
-  if (!data) return 2
-  if (typeof data === 'string') {
-    return 2 + Buffer.byteLength(data) + 2
-  }
-  return (Buffer.isBuffer(data) ? data.length : Buffer.byteLength(data)) + 2
+  if (!data) data = []
+  if (!Array.isArray(data)) data = [data]
+  let length = 2 + 1
+  data.forEach(function (buf) {
+    if (typeof buf === 'string') {
+      length += Buffer.byteLength(buf) + 1
+    } else {
+      length += buf.length + 1
+    }
+  })
+  return length
 }
 
 const rhinfo = exports.hinfo = {}
