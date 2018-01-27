@@ -288,11 +288,13 @@ const rtxt = exports.txt = exports.null = {}
 const rnull = rtxt
 
 rtxt.encode = function (data, buf, offset) {
-  if (!data) data = []
   if (!Array.isArray(data)) data = [data]
   for (let i = 0; i < data.length; i++) {
     if (typeof data[i] === 'string') {
       data[i] = Buffer.from(data[i])
+    }
+    if (!Buffer.isBuffer(data[i]) || data[i].length === 0) {
+      throw new Error('Must be a non-empty Buffer')
     }
   }
 
@@ -335,7 +337,6 @@ rtxt.decode = function (buf, offset) {
 rtxt.decode.bytes = 0
 
 rtxt.encodingLength = function (data) {
-  if (!data) data = []
   if (!Array.isArray(data)) data = [data]
   let length = 2 + 1
   data.forEach(function (buf) {
@@ -343,6 +344,9 @@ rtxt.encodingLength = function (data) {
       length += Buffer.byteLength(buf) + 1
     } else {
       length += buf.length + 1
+    }
+    if (length === 1) {
+      throw new Error('Must be a non-empty Buffer')
     }
   })
   return length

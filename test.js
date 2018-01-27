@@ -12,6 +12,7 @@ tape('unknown', function (t) {
 })
 
 tape('txt', function (t) {
+  testEncoder(t, packet.txt, [])
   testEncoder(t, packet.txt, ['hello world'])
   testEncoder(t, packet.txt, ['hello', 'world'])
   testEncoder(t, packet.txt, [Buffer.from([0, 1, 2, 3, 4, 5])])
@@ -33,6 +34,15 @@ tape('txt-scalar-buffer', function (t) {
   const val = packet.txt.decode(buf)
   t.ok(val.length === 1, 'array length')
   t.ok(val[0].equals(data), 'data')
+  t.end()
+})
+
+tape('txt-invalid-data', function (t) {
+  t.throws(function () { packet.txt.encode(null) }, 'null')
+  t.throws(function () { packet.txt.encode(undefined) }, 'undefined')
+  t.throws(function () { packet.txt.encode(10) }, 'number')
+  t.throws(function () { packet.txt.encode(Buffer.allocUnsafe(0)) }, 'empty buffer')
+  t.throws(function () { packet.txt.encode('') }, 'empty string')
   t.end()
 })
 
