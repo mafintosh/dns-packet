@@ -132,14 +132,13 @@ Currently the different available records are
 
 ``` js
 {
-  data: Buffer(...)
-}
-{
-  data: 'some string'
+  data: 'text' || Buffer || [ Buffer || 'text' ]
 }
 ```
 
-Note that `data` must be an array of byte-length prefixed strings and the end of the array is signalled by a length of zero.  When encoding, a Buffer is taken as is (assumption is that it is encoded correctly), while a string is converted.
+When encoding, scalar values are converted to an array and strings are converted to an UTF-8 encoded Buffer. An error is `thrown` if a string or Buffer is empty.
+
+When decoding, an array of Buffer is always returned.
 
 #### `NS`
 
