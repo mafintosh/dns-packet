@@ -284,8 +284,7 @@ rsoa.encodingLength = function (data) {
   return 22 + name.encodingLength(data.mname) + name.encodingLength(data.rname)
 }
 
-const rtxt = exports.txt = exports.null = {}
-const rnull = rtxt
+const rtxt = exports.txt = {}
 
 rtxt.encode = function (data, buf, offset) {
   if (!Array.isArray(data)) data = [data]
@@ -352,6 +351,50 @@ rtxt.encodingLength = function (data) {
     }
   })
   return length
+}
+
+const rnull = exports.null = {}
+
+rnull.encode = function (data, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(rnull.encodingLength(data))
+  if (!offset) offset = 0
+
+  if (typeof data === 'string') data = Buffer.from(data)
+  if (!data) data = Buffer.allocUnsafe(0)
+
+  const oldOffset = offset
+  offset += 2
+
+  const len = data.length
+  data.copy(buf, offset, 0, len)
+  offset += len
+
+  buf.writeUInt16BE(offset - oldOffset - 2, oldOffset)
+  rnull.encode.bytes = offset - oldOffset
+  return buf
+}
+
+rnull.encode.bytes = 0
+
+rnull.decode = function (buf, offset) {
+  if (!offset) offset = 0
+  const oldOffset = offset
+  const len = buf.readUInt16BE(offset)
+
+  offset += 2
+
+  const data = buf.slice(offset, offset + len)
+  offset += len
+
+  rnull.decode.bytes = offset - oldOffset
+  return data
+}
+
+rnull.decode.bytes = 0
+
+rnull.encodingLength = function (data) {
+  if (!data) return 2
+  return (Buffer.isBuffer(data) ? data.length : Buffer.byteLength(data)) + 2
 }
 
 const rhinfo = exports.hinfo = {}

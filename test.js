@@ -46,7 +46,7 @@ tape('txt-invalid-data', function (t) {
 })
 
 tape('null', function (t) {
-  testEncoder(t, packet.null, [Buffer.from([0, 1, 2, 3, 4, 5])])
+  testEncoder(t, packet.null, Buffer.from([0, 1, 2, 3, 4, 5]))
   t.end()
 })
 
@@ -201,7 +201,7 @@ tape('response', function (t) {
     answers: [{
       type: 'NULL',
       name: 'hello.null.com',
-      data: [Buffer.from([1, 2, 3, 4, 5])]
+      data: Buffer.from([1, 2, 3, 4, 5])
     }]
   })
 
