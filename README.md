@@ -136,7 +136,7 @@ Currently the different available records are
 }
 ```
 
-When encoding, scalar values are converted to an array and strings are converted to an UTF-8 encoded Buffer. An error is `thrown` if a string or Buffer is empty.
+When encoding, scalar values are converted to an array and strings are converted to UTF-8 encoded Buffers. An error is `thrown` if a string or Buffer is empty.
 
 When decoding, an array of Buffer is always returned.
 

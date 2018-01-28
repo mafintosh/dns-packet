@@ -293,8 +293,8 @@ rtxt.encode = function (data, buf, offset) {
     if (typeof data[i] === 'string') {
       data[i] = Buffer.from(data[i])
     }
-    if (!Buffer.isBuffer(data[i]) || data[i].length === 0) {
-      throw new Error('Must be a non-empty Buffer')
+    if (!Buffer.isBuffer(data[i])) {
+      throw new Error('Must be a Buffer')
     }
   }
 
@@ -309,7 +309,6 @@ rtxt.encode = function (data, buf, offset) {
     d.copy(buf, offset, 0, d.length)
     offset += d.length
   })
-  buf[offset++] = 0
 
   buf.writeUInt16BE(offset - oldOffset - 2, oldOffset)
   rtxt.encode.bytes = offset - oldOffset
@@ -321,13 +320,19 @@ rtxt.encode.bytes = 0
 rtxt.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
+  let remaining = buf.readUInt16BE(offset)
   offset += 2
 
-  let len
   let data = []
-  while ((len = buf[offset++]) !== 0) {
+  while (remaining > 0) {
+    const len = buf[offset++]
+    --remaining
+    if (remaining < len) {
+      throw new Error('Buffer overflow')
+    }
     data.push(buf.slice(offset, offset + len))
     offset += len
+    remaining -= len
   }
 
   rtxt.decode.bytes = offset - oldOffset
@@ -338,15 +343,12 @@ rtxt.decode.bytes = 0
 
 rtxt.encodingLength = function (data) {
   if (!Array.isArray(data)) data = [data]
-  let length = 2 + 1
+  let length = 2
   data.forEach(function (buf) {
     if (typeof buf === 'string') {
       length += Buffer.byteLength(buf) + 1
     } else {
       length += buf.length + 1
-    }
-    if (length === 1) {
-      throw new Error('Must be a non-empty Buffer')
     }
   })
   return length

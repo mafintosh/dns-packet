@@ -17,6 +17,7 @@ tape('txt', function (t) {
   testEncoder(t, packet.txt, ['hello', 'world'])
   testEncoder(t, packet.txt, [Buffer.from([0, 1, 2, 3, 4, 5])])
   testEncoder(t, packet.txt, ['a', 'b', Buffer.from([0, 1, 2, 3, 4, 5])])
+  testEncoder(t, packet.txt, ['', Buffer.allocUnsafe(0)])
   t.end()
 })
 
@@ -41,8 +42,6 @@ tape('txt-invalid-data', function (t) {
   t.throws(function () { packet.txt.encode(null) }, 'null')
   t.throws(function () { packet.txt.encode(undefined) }, 'undefined')
   t.throws(function () { packet.txt.encode(10) }, 'number')
-  t.throws(function () { packet.txt.encode(Buffer.allocUnsafe(0)) }, 'empty buffer')
-  t.throws(function () { packet.txt.encode('') }, 'empty string')
   t.end()
 })
 
