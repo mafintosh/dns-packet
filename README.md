@@ -9,7 +9,7 @@ npm install dns-packet
 
 [![build status](https://travis-ci.org/mafintosh/dns-packet.svg?branch=master)](https://travis-ci.org/mafintosh/dns-packet)
 
-## Usage
+## UDP Usage
 
 ``` js
 var packet = require('dns-packet')
@@ -34,6 +34,10 @@ socket.on('message', function (message) {
 
 socket.send(buf, 0, buf.length, 53, '8.8.8.8')
 ```
+
+## TCP Usage
+
+While DNS has traditionally been used over a datagram transport, it is increasingly being carried over TCP for larger responses commonly including DNSSEC responses and TCP/TLS for privacy reasons.
 
 ## API
 

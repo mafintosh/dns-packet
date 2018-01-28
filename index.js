@@ -756,8 +756,8 @@ exports.streamEncode.bytes = 0
 
 exports.streamDecode = function (buf) {
   const len = buf.readUInt16BE(0)
-  if (buf.length < len) {
-    return {}
+  if (buf.length < len + 2) {
+    return null
   }
   const result = exports.decode(buf, 2)
   exports.streamDecode.bytes = exports.decode.bytes + 2
