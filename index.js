@@ -680,11 +680,11 @@ answer.decode = function (buf, offset) {
   a.name = name.decode(buf, offset)
   offset += name.decode.bytes
   a.type = types.toString(buf.readUInt16BE(offset))
-  a.class = classes.toString(buf.readUInt16BE(offset + 2))
+  const klass = buf.readUInt16BE(offset + 2)
   a.ttl = buf.readUInt32BE(offset + 4)
 
-  a.flush = !!(a.class & FLUSH_MASK)
-  if (a.flush) a.class &= NOT_FLUSH_MASK
+  a.class = classes.toString(klass & NOT_FLUSH_MASK)
+  a.flush = !!(klass & FLUSH_MASK)
 
   const enc = renc(a.type)
   a.data = enc.decode(buf, offset + 8)
