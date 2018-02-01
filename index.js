@@ -141,8 +141,8 @@ header.decode = function (buf, offset) {
     flags: flags & 32767,
     flag_qr: ((flags >> 15) & 0x1) === 1,
     opcode: opcodes.toString((flags >> 11) & 0xf),
-    flag_auth: ((flags >> 10) & 0x1) === 1,
-    flag_trunc: ((flags >> 9) & 0x1) === 1,
+    flag_aa: ((flags >> 10) & 0x1) === 1,
+    flag_tc: ((flags >> 9) & 0x1) === 1,
     flag_rd: ((flags >> 8) & 0x1) === 1,
     flag_ra: ((flags >> 7) & 0x1) === 1,
     flag_z: ((flags >> 6) & 0x1) === 1,
@@ -284,11 +284,79 @@ rsoa.encodingLength = function (data) {
   return 22 + name.encodingLength(data.mname) + name.encodingLength(data.rname)
 }
 
-const rtxt = exports.txt = exports.null = {}
-const rnull = rtxt
+const rtxt = exports.txt = {}
 
 rtxt.encode = function (data, buf, offset) {
+  if (!Array.isArray(data)) data = [data]
+  for (let i = 0; i < data.length; i++) {
+    if (typeof data[i] === 'string') {
+      data[i] = Buffer.from(data[i])
+    }
+    if (!Buffer.isBuffer(data[i])) {
+      throw new Error('Must be a Buffer')
+    }
+  }
+
   if (!buf) buf = Buffer.allocUnsafe(rtxt.encodingLength(data))
+  if (!offset) offset = 0
+
+  const oldOffset = offset
+  offset += 2
+
+  data.forEach(function (d) {
+    buf[offset++] = d.length
+    d.copy(buf, offset, 0, d.length)
+    offset += d.length
+  })
+
+  buf.writeUInt16BE(offset - oldOffset - 2, oldOffset)
+  rtxt.encode.bytes = offset - oldOffset
+  return buf
+}
+
+rtxt.encode.bytes = 0
+
+rtxt.decode = function (buf, offset) {
+  if (!offset) offset = 0
+  const oldOffset = offset
+  let remaining = buf.readUInt16BE(offset)
+  offset += 2
+
+  let data = []
+  while (remaining > 0) {
+    const len = buf[offset++]
+    --remaining
+    if (remaining < len) {
+      throw new Error('Buffer overflow')
+    }
+    data.push(buf.slice(offset, offset + len))
+    offset += len
+    remaining -= len
+  }
+
+  rtxt.decode.bytes = offset - oldOffset
+  return data
+}
+
+rtxt.decode.bytes = 0
+
+rtxt.encodingLength = function (data) {
+  if (!Array.isArray(data)) data = [data]
+  let length = 2
+  data.forEach(function (buf) {
+    if (typeof buf === 'string') {
+      length += Buffer.byteLength(buf) + 1
+    } else {
+      length += buf.length + 1
+    }
+  })
+  return length
+}
+
+const rnull = exports.null = {}
+
+rnull.encode = function (data, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(rnull.encodingLength(data))
   if (!offset) offset = 0
 
   if (typeof data === 'string') data = Buffer.from(data)
@@ -302,13 +370,13 @@ rtxt.encode = function (data, buf, offset) {
   offset += len
 
   buf.writeUInt16BE(offset - oldOffset - 2, oldOffset)
-  rtxt.encode.bytes = offset - oldOffset
+  rnull.encode.bytes = offset - oldOffset
   return buf
 }
 
-rtxt.encode.bytes = 0
+rnull.encode.bytes = 0
 
-rtxt.decode = function (buf, offset) {
+rnull.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
   const len = buf.readUInt16BE(offset)
@@ -318,13 +386,13 @@ rtxt.decode = function (buf, offset) {
   const data = buf.slice(offset, offset + len)
   offset += len
 
-  rtxt.decode.bytes = offset - oldOffset
+  rnull.decode.bytes = offset - oldOffset
   return data
 }
 
-rtxt.decode.bytes = 0
+rnull.decode.bytes = 0
 
-rtxt.encodingLength = function (data) {
+rnull.encodingLength = function (data) {
   if (!data) return 2
   return (Buffer.isBuffer(data) ? data.length : Buffer.byteLength(data)) + 2
 }

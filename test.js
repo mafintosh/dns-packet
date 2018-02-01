@@ -12,9 +12,36 @@ tape('unknown', function (t) {
 })
 
 tape('txt', function (t) {
-  testEncoder(t, packet.txt, Buffer.allocUnsafe(0))
-  testEncoder(t, packet.txt, Buffer.from('hello world'))
-  testEncoder(t, packet.txt, Buffer.from([0, 1, 2, 3, 4, 5]))
+  testEncoder(t, packet.txt, [])
+  testEncoder(t, packet.txt, ['hello world'])
+  testEncoder(t, packet.txt, ['hello', 'world'])
+  testEncoder(t, packet.txt, [Buffer.from([0, 1, 2, 3, 4, 5])])
+  testEncoder(t, packet.txt, ['a', 'b', Buffer.from([0, 1, 2, 3, 4, 5])])
+  testEncoder(t, packet.txt, ['', Buffer.allocUnsafe(0)])
+  t.end()
+})
+
+tape('txt-scalar-string', function (t) {
+  const buf = packet.txt.encode('hi')
+  const val = packet.txt.decode(buf)
+  t.ok(val.length === 1, 'array length')
+  t.ok(val[0].toString() === 'hi', 'data')
+  t.end()
+})
+
+tape('txt-scalar-buffer', function (t) {
+  const data = Buffer.from([0, 1, 2, 3, 4, 5])
+  const buf = packet.txt.encode(data)
+  const val = packet.txt.decode(buf)
+  t.ok(val.length === 1, 'array length')
+  t.ok(val[0].equals(data), 'data')
+  t.end()
+})
+
+tape('txt-invalid-data', function (t) {
+  t.throws(function () { packet.txt.encode(null) }, 'null')
+  t.throws(function () { packet.txt.encode(undefined) }, 'undefined')
+  t.throws(function () { packet.txt.encode(10) }, 'number')
   t.end()
 })
 
@@ -207,9 +234,9 @@ tape('rcode', function (t) {
   const val = packet.decode(buf)
   t.ok(val.type === 'response', 'decode type')
   t.ok(val.opcode === 'QUERY', 'decode opcode')
-  t.ok(val.flag_qr === true, 'decode flag_auth')
-  t.ok(val.flag_auth === true, 'decode flag_auth')
-  t.ok(val.flag_trunc === false, 'decode flag_trunc')
+  t.ok(val.flag_qr === true, 'decode flag_qr')
+  t.ok(val.flag_aa === true, 'decode flag_aa')
+  t.ok(val.flag_tc === false, 'decode flag_tc')
   t.ok(val.flag_rd === false, 'decode flag_rd')
   t.ok(val.flag_ra === true, 'decode flag_ra')
   t.ok(val.flag_z === false, 'decode flag_z')
