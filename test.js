@@ -155,6 +155,17 @@ tape('query', function (t) {
 tape('response', function (t) {
   testEncoder(t, packet, {
     type: 'response',
+    answers: [{
+      type: 'A',
+      class: 'IN',
+      flush: true,
+      name: 'hello.a.com',
+      data: '127.0.0.1'
+    }]
+  })
+
+  testEncoder(t, packet, {
+    type: 'response',
     flags: packet.TRUNCATED_RESPONSE,
     answers: [{
       type: 'A',
