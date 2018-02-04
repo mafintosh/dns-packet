@@ -35,19 +35,31 @@ socket.on('message', function (message) {
 socket.send(buf, 0, buf.length, 53, '8.8.8.8')
 ```
 
+Also see [the UDP example](examples/udp.js).
+
 ## TCP Usage
 
 While DNS has traditionally been used over a datagram transport, it is increasingly being carried over TCP for larger responses commonly including DNSSEC responses and TCP/TLS for privacy reasons.
+
+See [the TCP example](examples/tcp.js).
 
 ## API
 
 #### `var buf = packets.encode(packet, [buf], [offset])`
 
-Encodes a DNS packet into a buffer.
+Encodes a DNS packet into a buffer containing a UDP payload.
 
 #### `var packet = packets.decode(buf, [offset])`
 
-Decode a DNS packet from a buffer
+Decode a DNS packet from a buffer containing a UDP payload.
+
+#### `var buf = packets.streamEncode(packet, [buf], [offset])`
+
+Encodes a DNS packet into a buffer containing a TCP payload.
+
+#### `var packet = packets.streamDecode(buf, [offset])`
+
+Decode a DNS packet from a buffer containing a TCP payload.
 
 #### `var len = packets.encodingLength(packet)`
 
