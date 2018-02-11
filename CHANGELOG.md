@@ -1,3 +1,7 @@
+# Version 4.1.0 - 2018-02-11
+
+- Feature: Added the MX record type.
+
 # Version 4.0.0 - 2018-02-04
 
 - Feature: Added `streamEncode` and `streamDecode` methods for encoding TCP packets.
