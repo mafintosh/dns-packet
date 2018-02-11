@@ -564,6 +564,46 @@ rcaa.encodingLength = function (data) {
   return string.encodingLength(data.tag) + string.encodingLength(data.value) + 2
 }
 
+const rmx = exports.mx = {}
+
+rmx.encode = function (data, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(rmx.encodingLength(data))
+  if (!offset) offset = 0
+
+  const oldOffset = offset
+  offset += 2
+  buf.writeUInt16BE(data.preference || 0, offset)
+  offset += 2
+  name.encode(data.exchange, buf, offset)
+  offset += name.encode.bytes
+
+  buf.writeUInt16BE(offset - oldOffset - 2, oldOffset)
+  rmx.encode.bytes = offset - oldOffset
+  return buf
+}
+
+rmx.encode.bytes = 0
+
+rmx.decode = function (buf, offset) {
+  if (!offset) offset = 0
+
+  const oldOffset = offset
+
+  const data = {}
+  offset += 2
+  data.preference = buf.readUInt16BE(offset)
+  offset += 2
+  data.exchange = name.decode(buf, offset)
+  offset += name.decode.bytes
+
+  rmx.decode.bytes = offset - oldOffset
+  return data
+}
+
+rmx.encodingLength = function (data) {
+  return 4 + name.encodingLength(data.exchange)
+}
+
 const ra = exports.a = {}
 
 ra.encode = function (host, buf, offset) {
@@ -638,6 +678,7 @@ const renc = exports.record = function (type) {
     case 'CAA': return rcaa
     case 'NS': return rns
     case 'SOA': return rsoa
+    case 'MX': return rmx
   }
   return runknown
 }

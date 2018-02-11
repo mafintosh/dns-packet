@@ -83,6 +83,12 @@ tape('caa', function (t) {
   t.end()
 })
 
+tape('mx', function (t) {
+  testEncoder(t, packet.mx, {preference: 10, exchange: 'mx.hello.world.com'})
+  testEncoder(t, packet.mx, {exchange: 'mx.hello.world.com'})
+  t.end()
+})
+
 tape('ns', function (t) {
   testEncoder(t, packet.ns, 'ns.world.com')
   t.end()

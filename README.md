@@ -245,6 +245,15 @@ When encoding, scalar values are converted to an array and strings are converted
 }
 ```
 
+#### `MX`
+
+``` js
+{
+  preference: 10,
+  exchange: 'mail.example.net'
+}
+```
+
 If you need another one, open an issue and we'll try to add it.
 
 ## License
