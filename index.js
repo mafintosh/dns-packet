@@ -814,9 +814,9 @@ exports.encodingLength = function (result) {
 exports.streamEncode = function (result) {
   const buf = exports.encode(result)
   const sbuf = Buffer.allocUnsafe(2)
-  sbuf.writeUInt16BE(buf.length)
+  sbuf.writeUInt16BE(buf.byteLength)
   const combine = Buffer.concat([sbuf, buf])
-  exports.streamEncode.bytes = combine.length
+  exports.streamEncode.bytes = combine.byteLength
   return combine
 }
 
@@ -824,11 +824,11 @@ exports.streamEncode.bytes = 0
 
 exports.streamDecode = function (sbuf) {
   const len = sbuf.readUInt16BE(0)
-  if (sbuf.length < len + 2) {
+  if (sbuf.byteLength < len + 2) {
+    // not enough data
     return null
   }
-  const buf = Buffer.from(sbuf.buffer, sbuf.byteOffset + 2, sbuf.length - 2)
-  const result = exports.decode(buf)
+  const result = exports.decode(sbuf.slice(2))
   exports.streamDecode.bytes = exports.decode.bytes
   return result
 }
