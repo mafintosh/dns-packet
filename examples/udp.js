@@ -1,6 +1,6 @@
 'use strict'
 
-const packet = require('../.')
+const packet = require('..')
 const dgram = require('dgram')
 
 const socket = dgram.createSocket('udp4')

@@ -1,7 +1,7 @@
 'use strict'
 
 const tls = require('tls')
-const packet = require('../.')
+const packet = require('..')
 
 var response = null
 var expected_length = 0
@@ -10,7 +10,7 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const buf = packet.streamEncode({
+const encodedPacket = packet.streamEncode({
   type: 'query',
   id: getRandomInt(1, 65534),
   flags: packet.RECURSION_DESIRED,
@@ -32,14 +32,14 @@ const options = {
 
 const client = tls.connect(options, () => {
   console.log('client connected')
-  client.write(buf)
+  client.write(encodedPacket)
 })
 
 client.on('data', function (data) {
   console.log('Received response: %d bytes', data.byteLength)
   if (response == null) {
     if (data.byteLength > 1) {
-      const plen = buf.readUInt16BE(0)
+      const plen = data.readUInt16BE(0)
       expected_length = plen
       if (plen < 12) {
         throw new Error('below DNS minimum packet length')
