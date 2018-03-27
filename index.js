@@ -853,23 +853,24 @@ exports.encodingLength = function (result) {
 }
 
 exports.streamEncode = function (result) {
-  const len = exports.encodingLength(result)
-  const buf = Buffer.allocUnsafe(len + 2)
-  exports.encode(result, buf, 2)
-  buf.writeUInt16BE(len, 0)
-  exports.streamEncode.bytes = len + 2
-  return buf
+  const buf = exports.encode(result)
+  const sbuf = Buffer.allocUnsafe(2)
+  sbuf.writeUInt16BE(buf.byteLength)
+  const combine = Buffer.concat([sbuf, buf])
+  exports.streamEncode.bytes = combine.byteLength
+  return combine
 }
 
 exports.streamEncode.bytes = 0
 
-exports.streamDecode = function (buf) {
-  const len = buf.readUInt16BE(0)
-  if (buf.length < len + 2) {
+exports.streamDecode = function (sbuf) {
+  const len = sbuf.readUInt16BE(0)
+  if (sbuf.byteLength < len + 2) {
+    // not enough data
     return null
   }
-  const result = exports.decode(buf, 2)
-  exports.streamDecode.bytes = exports.decode.bytes + 2
+  const result = exports.decode(sbuf.slice(2))
+  exports.streamDecode.bytes = exports.decode.bytes
   return result
 }
 
