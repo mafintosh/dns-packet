@@ -83,6 +83,12 @@ tape('caa', function (t) {
   t.end()
 })
 
+tape('mx', function (t) {
+  testEncoder(t, packet.mx, {preference: 10, exchange: 'mx.hello.world.com'})
+  testEncoder(t, packet.mx, {exchange: 'mx.hello.world.com'})
+  t.end()
+})
+
 tape('ns', function (t) {
   testEncoder(t, packet.ns, 'ns.world.com')
   t.end()
@@ -304,7 +310,6 @@ tape('stream', function (t) {
   const val2 = packet.streamDecode(buf)
 
   t.same(buf.length, packet.streamEncode.bytes, 'streamEncode.bytes was set correctly')
-  t.same(packet.streamDecode.bytes, packet.streamEncode.bytes, 'streamDecode.bytes was set correctly')
   t.ok(compare(t, val2.type, val.type), 'streamDecoded type match')
   t.ok(compare(t, val2.id, val.id), 'streamDecoded id match')
   t.ok(parseInt(val2.flags) === parseInt(val.flags & 0x7FFF), 'streamDecoded flags match')
@@ -313,6 +318,38 @@ tape('stream', function (t) {
   t.ok(compare(t, answer.type, answer2.type), 'streamDecoded RR type match')
   t.ok(compare(t, answer.name, answer2.name), 'streamDecoded RR name match')
   t.ok(compare(t, answer.data, answer2.data), 'streamDecoded RR rdata match')
+  t.end()
+})
+
+tape('unpack', function (t) {
+  const buf = Buffer.from([
+    0x00, 0x79,
+    0xde, 0xad, 0x85, 0x00, 0x00, 0x01, 0x00, 0x01,
+    0x00, 0x02, 0x00, 0x02, 0x02, 0x6f, 0x6a, 0x05,
+    0x62, 0x61, 0x6e, 0x67, 0x6a, 0x03, 0x63, 0x6f,
+    0x6d, 0x00, 0x00, 0x01, 0x00, 0x01, 0xc0, 0x0c,
+    0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x0e, 0x10,
+    0x00, 0x04, 0x81, 0xfa, 0x0b, 0xaa, 0xc0, 0x0f,
+    0x00, 0x02, 0x00, 0x01, 0x00, 0x00, 0x0e, 0x10,
+    0x00, 0x05, 0x02, 0x63, 0x6a, 0xc0, 0x0f, 0xc0,
+    0x0f, 0x00, 0x02, 0x00, 0x01, 0x00, 0x00, 0x0e,
+    0x10, 0x00, 0x02, 0xc0, 0x0c, 0xc0, 0x3a, 0x00,
+    0x01, 0x00, 0x01, 0x00, 0x00, 0x0e, 0x10, 0x00,
+    0x04, 0x45, 0x4d, 0x9b, 0x9c, 0xc0, 0x0c, 0x00,
+    0x1c, 0x00, 0x01, 0x00, 0x00, 0x0e, 0x10, 0x00,
+    0x10, 0x20, 0x01, 0x04, 0x18, 0x00, 0x00, 0x50,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xf9
+  ])
+  const val = packet.streamDecode(buf)
+  const answer = val.answers[0]
+  const authority = val.authorities[1]
+  t.ok(val.rcode === 'NOERROR', 'decode rcode')
+  t.ok(compare(t, answer.type, 'A'), 'streamDecoded RR type match')
+  t.ok(compare(t, answer.name, 'oj.bangj.com'), 'streamDecoded RR name match')
+  t.ok(compare(t, answer.data, '129.250.11.170'), 'streamDecoded RR rdata match')
+  t.ok(compare(t, authority.type, 'NS'), 'streamDecoded RR type match')
+  t.ok(compare(t, authority.name, 'bangj.com'), 'streamDecoded RR name match')
+  t.ok(compare(t, authority.data, 'oj.bangj.com'), 'streamDecoded RR rdata match')
   t.end()
 })
 

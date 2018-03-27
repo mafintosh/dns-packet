@@ -564,6 +564,46 @@ rcaa.encodingLength = function (data) {
   return string.encodingLength(data.tag) + string.encodingLength(data.value) + 2
 }
 
+const rmx = exports.mx = {}
+
+rmx.encode = function (data, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(rmx.encodingLength(data))
+  if (!offset) offset = 0
+
+  const oldOffset = offset
+  offset += 2
+  buf.writeUInt16BE(data.preference || 0, offset)
+  offset += 2
+  name.encode(data.exchange, buf, offset)
+  offset += name.encode.bytes
+
+  buf.writeUInt16BE(offset - oldOffset - 2, oldOffset)
+  rmx.encode.bytes = offset - oldOffset
+  return buf
+}
+
+rmx.encode.bytes = 0
+
+rmx.decode = function (buf, offset) {
+  if (!offset) offset = 0
+
+  const oldOffset = offset
+
+  const data = {}
+  offset += 2
+  data.preference = buf.readUInt16BE(offset)
+  offset += 2
+  data.exchange = name.decode(buf, offset)
+  offset += name.decode.bytes
+
+  rmx.decode.bytes = offset - oldOffset
+  return data
+}
+
+rmx.encodingLength = function (data) {
+  return 4 + name.encodingLength(data.exchange)
+}
+
 const ra = exports.a = {}
 
 ra.encode = function (host, buf, offset) {
@@ -638,6 +678,7 @@ const renc = exports.record = function (type) {
     case 'CAA': return rcaa
     case 'NS': return rns
     case 'SOA': return rsoa
+    case 'MX': return rmx
   }
   return runknown
 }
@@ -812,23 +853,24 @@ exports.encodingLength = function (result) {
 }
 
 exports.streamEncode = function (result) {
-  const len = exports.encodingLength(result)
-  const buf = Buffer.allocUnsafe(len + 2)
-  exports.encode(result, buf, 2)
-  buf.writeUInt16BE(len, 0)
-  exports.streamEncode.bytes = len + 2
-  return buf
+  const buf = exports.encode(result)
+  const sbuf = Buffer.allocUnsafe(2)
+  sbuf.writeUInt16BE(buf.byteLength)
+  const combine = Buffer.concat([sbuf, buf])
+  exports.streamEncode.bytes = combine.byteLength
+  return combine
 }
 
 exports.streamEncode.bytes = 0
 
-exports.streamDecode = function (buf) {
-  const len = buf.readUInt16BE(0)
-  if (buf.length < len + 2) {
+exports.streamDecode = function (sbuf) {
+  const len = sbuf.readUInt16BE(0)
+  if (sbuf.byteLength < len + 2) {
+    // not enough data
     return null
   }
-  const result = exports.decode(buf, 2)
-  exports.streamDecode.bytes = exports.decode.bytes + 2
+  const result = exports.decode(sbuf.slice(2))
+  exports.streamDecode.bytes = exports.decode.bytes
   return result
 }
 
