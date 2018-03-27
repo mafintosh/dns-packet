@@ -1,7 +1,7 @@
 'use strict'
 
+const tls = require('tls')
 const packet = require('..')
-const net = require('net')
 
 var response = null
 var expected_length = 0
@@ -20,9 +20,18 @@ const encodedPacket = packet.streamEncode({
   }]
 })
 
-const client = new net.Socket()
-client.connect(53, '8.8.8.8', function () {
-  console.log('Connected')
+const context = tls.createSecureContext({
+  secureProtocol: 'TLSv1_2_method'
+})
+
+const options = {
+  port: 853,
+  host: 'getdnsapi.net',
+  secureContext: context
+}
+
+const client = tls.connect(options, () => {
+  console.log('client connected')
   client.write(encodedPacket)
 })
 
@@ -47,6 +56,6 @@ client.on('data', function (data) {
   }
 })
 
-client.on('close', function () {
-  console.log('Connection closed')
+client.on('end', () => {
+  console.log('Connection ended')
 })
