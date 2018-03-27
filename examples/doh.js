@@ -50,4 +50,3 @@ request.on('error', (e) => {
 })
 request.write(encodedPacket)
 request.end()
-

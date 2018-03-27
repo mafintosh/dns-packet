@@ -37,11 +37,13 @@ socket.send(buf, 0, buf.length, 53, '8.8.8.8')
 
 Also see [the UDP example](examples/udp.js).
 
-## TCP Usage
+## TCP, TLS, HTTPS
 
-While DNS has traditionally been used over a datagram transport, it is increasingly being carried over TCP for larger responses commonly including DNSSEC responses and TCP/TLS for privacy reasons.
+While DNS has traditionally been used over a datagram transport, it is increasingly being carried over TCP for larger responses commonly including DNSSEC responses and TLS or HTTPS for enhanced security. See below examples on how to use `dns-packet` to wrap DNS packets in these protocols:
 
-See [the TCP example](examples/tcp.js).
+- [TCP](examples/tcp.js)
+- [DNS over TLS](examples/tls.js)
+- [DNS over HTTPS](examples/doh.js)
 
 ## API
 
