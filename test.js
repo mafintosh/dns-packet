@@ -321,6 +321,28 @@ tape('stream', function (t) {
   t.end()
 })
 
+tape('opt', function (t) {
+  const val = {
+    type: 'query',
+    questions: [{
+      type: 'A',
+      name: 'hello.a.com'
+    }],
+    additionals: [{
+      type: 'OPT',
+      name: '.',
+      udp: 4096
+    }]
+  }
+  testEncoder(t, packet, val)
+  const buf = packet.encode(val)
+  const val2 = packet.decode(buf)
+  const additional1 = val.additionals[0]
+  const additional2 = val2.additionals[0]
+  t.ok(compare(t, additional1.udp, additional2.udp), 'udp payload size matches')
+  t.end()
+})
+
 tape('unpack', function (t) {
   const buf = Buffer.from([
     0x00, 0x79,

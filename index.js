@@ -77,6 +77,7 @@ name.decode = function (buf, offset) {
 name.decode.bytes = 0
 
 name.encodingLength = function (n) {
+  if (n === '.') return 1
   return Buffer.byteLength(n) + 2
 }
 
@@ -664,6 +665,34 @@ raaaa.encodingLength = function () {
   return 18
 }
 
+const ropt = exports.opt = {}
+
+ropt.encode = function (data, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(ropt.encodingLength(data))
+  if (!offset) offset = 0
+
+  buf.writeUInt16BE(0, offset) // rdata len
+
+  ropt.encode.bytes = 2
+  return buf
+}
+
+ropt.encode.bytes = 0
+
+ropt.decode = function (buf, offset) {
+  if (!offset) offset = 0
+
+  const len = buf.readUInt16BE(offset) // rdata len
+  ropt.decode.bytes = len + 2
+  return null
+}
+
+ropt.decode.bytes = 0
+
+ropt.encodingLength = function () {
+  return 2
+}
+
 const renc = exports.record = function (type) {
   switch (type.toUpperCase()) {
     case 'A': return ra
@@ -679,6 +708,7 @@ const renc = exports.record = function (type) {
     case 'NS': return rns
     case 'SOA': return rsoa
     case 'MX': return rmx
+    case 'OPT': return ropt
   }
   return runknown
 }
@@ -696,11 +726,20 @@ answer.encode = function (a, buf, offset) {
 
   buf.writeUInt16BE(types.toType(a.type), offset)
 
-  let klass = classes.toClass(a.class === undefined ? 'IN' : a.class)
-  if (a.flush) klass |= FLUSH_MASK // the 1st bit of the class is the flush bit
-  buf.writeUInt16BE(klass, offset + 2)
-
-  buf.writeUInt32BE(a.ttl || 0, offset + 4)
+  if (a.type === 'OPT') {
+    if (a.name !== '.') {
+      throw new Error('OPT name must be root.')
+    }
+    buf.writeUInt16BE(a.udp || 4096, offset + 2)
+    buf.writeUInt8(a.extRcode || 0, offset + 4)
+    buf.writeUInt8(a.ednsVersion || 0, offset + 5)
+    buf.writeUInt16BE(0, offset + 6)
+  } else {
+    let klass = classes.toClass(a.class === undefined ? 'IN' : a.class)
+    if (a.flush) klass |= FLUSH_MASK // the 1st bit of the class is the flush bit
+    buf.writeUInt16BE(klass, offset + 2)
+    buf.writeUInt32BE(a.ttl || 0, offset + 4)
+  }
 
   const enc = renc(a.type)
   enc.encode(a.data, buf, offset + 8)
@@ -721,11 +760,17 @@ answer.decode = function (buf, offset) {
   a.name = name.decode(buf, offset)
   offset += name.decode.bytes
   a.type = types.toString(buf.readUInt16BE(offset))
-  const klass = buf.readUInt16BE(offset + 2)
-  a.ttl = buf.readUInt32BE(offset + 4)
+  if (a.type === 'OPT') {
+    a.udp = buf.readUInt16BE(offset + 2)
+    a.ednsVersion = buf.readUInt8(offset + 5)
+    a.flags = buf.readUInt16BE(offset + 6)
+  } else {
+    const klass = buf.readUInt16BE(offset + 2)
+    a.ttl = buf.readUInt32BE(offset + 4)
 
-  a.class = classes.toString(klass & NOT_FLUSH_MASK)
-  a.flush = !!(klass & FLUSH_MASK)
+    a.class = classes.toString(klass & NOT_FLUSH_MASK)
+    a.flush = !!(klass & FLUSH_MASK)
+  }
 
   const enc = renc(a.type)
   a.data = enc.decode(buf, offset + 8)
