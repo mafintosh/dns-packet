@@ -665,15 +665,56 @@ raaaa.encodingLength = function () {
   return 18
 }
 
+const roption = exports.option = {}
+
+roption.encode = function (option, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(roption.encodingLength(option))
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  buf.writeUInt16BE(option.code, offset)
+  offset += 2
+  buf.writeUInt16BE(option.data.length, offset)
+  offset += 2
+  option.data.copy(buf, offset)
+  offset += option.data.length
+
+  roption.encode.bytes = offset - oldOffset
+  return buf
+}
+
+roption.encode.bytes = 0
+
+roption.decode = function (buf, offset) {
+  if (!offset) offset = 0
+  const option = {}
+
+  option.code = buf.readUInt16BE(offset)
+  const len = buf.readUInt16BE(offset + 2)
+  option.data = buf.slice(offset + 4, offset + 4 + len)
+
+  roption.decode.bytes = len + 4
+  return option
+}
+
+roption.decode.bytes = 0
+
+roption.encodingLength = function (option) {
+  return option.data.length + 4
+}
+
 const ropt = exports.opt = {}
 
-ropt.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(ropt.encodingLength(data))
+ropt.encode = function (options, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(ropt.encodingLength(options))
   if (!offset) offset = 0
+  const oldOffset = offset
 
-  buf.writeUInt16BE(0, offset) // rdata len
+  const rdlen = encodingLengthList(options, roption)
+  buf.writeUInt16BE(rdlen, offset)
+  offset = encodeList(options, roption, buf, offset + 2)
 
-  ropt.encode.bytes = 2
+  ropt.encode.bytes = offset - oldOffset
   return buf
 }
 
@@ -681,16 +722,25 @@ ropt.encode.bytes = 0
 
 ropt.decode = function (buf, offset) {
   if (!offset) offset = 0
+  const oldOffset = offset
 
-  const len = buf.readUInt16BE(offset) // rdata len
-  ropt.decode.bytes = len + 2
-  return null
+  const options = []
+  let rdlen = buf.readUInt16BE(offset)
+  offset += 2
+  let o = 0
+  while (rdlen > 0) {
+    options[o++] = roption.decode(buf, offset)
+    offset += roption.decode.bytes
+    rdlen -= roption.decode.bytes
+  }
+  ropt.decode.bytes = offset - oldOffset
+  return options
 }
 
 ropt.decode.bytes = 0
 
-ropt.encodingLength = function () {
-  return 2
+ropt.encodingLength = function (options) {
+  return 2 + encodingLengthList(options || [], roption)
 }
 
 const renc = exports.record = function (type) {
@@ -726,24 +776,31 @@ answer.encode = function (a, buf, offset) {
 
   buf.writeUInt16BE(types.toType(a.type), offset)
 
-  if (a.type === 'OPT') {
+  if (a.type.toUpperCase() === 'OPT') {
     if (a.name !== '.') {
       throw new Error('OPT name must be root.')
     }
-    buf.writeUInt16BE(a.udp || 4096, offset + 2)
+    buf.writeUInt16BE(a.updPayloadSize || a.class || 4096, offset + 2)
     buf.writeUInt8(a.extRcode || 0, offset + 4)
     buf.writeUInt8(a.ednsVersion || 0, offset + 5)
-    buf.writeUInt16BE(0, offset + 6)
+    // a.flags might be 0, in which case, don't use ttl
+    let flags = a.flags == null ? a.ttl : a.flags
+    buf.writeUInt16BE(flags || 0, offset + 6)
+
+    offset += 8
+    ropt.encode(a.options || [], buf, offset)
+    offset += ropt.encode.bytes
   } else {
     let klass = classes.toClass(a.class === undefined ? 'IN' : a.class)
     if (a.flush) klass |= FLUSH_MASK // the 1st bit of the class is the flush bit
     buf.writeUInt16BE(klass, offset + 2)
     buf.writeUInt32BE(a.ttl || 0, offset + 4)
-  }
 
-  const enc = renc(a.type)
-  enc.encode(a.data, buf, offset + 8)
-  offset += 8 + enc.encode.bytes
+    offset += 8
+    const enc = renc(a.type)
+    enc.encode(a.data, buf, offset)
+    offset += enc.encode.bytes
+  }
 
   answer.encode.bytes = offset - oldOffset
   return buf
@@ -761,20 +818,23 @@ answer.decode = function (buf, offset) {
   offset += name.decode.bytes
   a.type = types.toString(buf.readUInt16BE(offset))
   if (a.type === 'OPT') {
-    a.udp = buf.readUInt16BE(offset + 2)
+    a.udpPayloadSize = buf.readUInt16BE(offset + 2)
     a.ednsVersion = buf.readUInt8(offset + 5)
     a.flags = buf.readUInt16BE(offset + 6)
+    a.flag_do = ((a.flags >> 15) & 0x1) === 1
+    a.options = ropt.decode(buf, offset + 8)
+    offset += 8 + ropt.decode.bytes
   } else {
     const klass = buf.readUInt16BE(offset + 2)
     a.ttl = buf.readUInt32BE(offset + 4)
 
     a.class = classes.toString(klass & NOT_FLUSH_MASK)
     a.flush = !!(klass & FLUSH_MASK)
-  }
 
-  const enc = renc(a.type)
-  a.data = enc.decode(buf, offset + 8)
-  offset += 8 + enc.decode.bytes
+    const enc = renc(a.type)
+    a.data = enc.decode(buf, offset + 8)
+    offset += 8 + enc.decode.bytes
+  }
 
   answer.decode.bytes = offset - oldOffset
   return a
@@ -783,7 +843,7 @@ answer.decode = function (buf, offset) {
 answer.decode.bytes = 0
 
 answer.encodingLength = function (a) {
-  return name.encodingLength(a.name) + 8 + renc(a.type).encodingLength(a.data)
+  return name.encodingLength(a.name) + 8 + renc(a.type).encodingLength(a.data || a.options)
 }
 
 const question = exports.question = {}
@@ -843,6 +903,7 @@ exports.RECURSION_DESIRED = 1 << 8
 exports.RECURSION_AVAILABLE = 1 << 7
 exports.AUTHENTIC_DATA = 1 << 5
 exports.CHECKING_DISABLED = 1 << 4
+exports.DNSSEC_OK = 1 << 15
 
 exports.encode = function (result, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(exports.encodingLength(result))

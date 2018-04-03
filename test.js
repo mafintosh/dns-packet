@@ -331,15 +331,28 @@ tape('opt', function (t) {
     additionals: [{
       type: 'OPT',
       name: '.',
-      udp: 4096
+      udpPayloadSize: 4096
     }]
   }
   testEncoder(t, packet, val)
-  const buf = packet.encode(val)
-  const val2 = packet.decode(buf)
+  let buf = packet.encode(val)
+  let val2 = packet.decode(buf)
   const additional1 = val.additionals[0]
-  const additional2 = val2.additionals[0]
-  t.ok(compare(t, additional1.udp, additional2.udp), 'udp payload size matches')
+  let additional2 = val2.additionals[0]
+  t.ok(compare(t, additional1.udpPayloadSize, additional2.udpPayloadSize), 'udp payload size matches')
+  t.ok(compare(t, 0, additional2.flags), 'flags match')
+  additional1.flags = packet.DNSSEC_OK
+  // padding, see RFC 7830
+  additional1.options = [{
+    code: 12,
+    data: Buffer.alloc(31)
+  }]
+  buf = packet.encode(val)
+  val2 = packet.decode(buf)
+  additional2 = val2.additionals[0]
+  t.ok(compare(t, 1 << 15, additional2.flags), 'DO bit set in flags')
+  t.ok(compare(t, true, additional2.flag_do), 'DO bit set')
+  t.ok(compare(t, additional1.options, additional2.options), 'options match')
   t.end()
 })
 
