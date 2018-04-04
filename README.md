@@ -256,6 +256,21 @@ When encoding, scalar values are converted to an array and strings are converted
 }
 ```
 
+#### `OPT`
+
+``` js
+{
+  type: 'OPT',
+  name: '.',
+  udpPayloadSize: 4096,
+  flags: packet.DNSSEC_OK,
+  options: [{
+    code: 12,
+    data: Buffer.alloc(31)
+  }]
+}
+```
+
 If you need another one, open an issue and we'll try to add it.
 
 ## License
