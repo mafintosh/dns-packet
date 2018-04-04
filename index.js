@@ -780,12 +780,10 @@ answer.encode = function (a, buf, offset) {
     if (a.name !== '.') {
       throw new Error('OPT name must be root.')
     }
-    buf.writeUInt16BE(a.updPayloadSize || a.class || 4096, offset + 2)
-    buf.writeUInt8(a.extRcode || 0, offset + 4)
+    buf.writeUInt16BE(a.updPayloadSize || 4096, offset + 2)
+    buf.writeUInt8(a.extendedRcode || 0, offset + 4)
     buf.writeUInt8(a.ednsVersion || 0, offset + 5)
-    // a.flags might be 0, in which case, don't use ttl
-    let flags = a.flags == null ? a.ttl : a.flags
-    buf.writeUInt16BE(flags || 0, offset + 6)
+    buf.writeUInt16BE(a.flags || 0, offset + 6)
 
     offset += 8
     ropt.encode(a.options || [], buf, offset)
@@ -819,6 +817,7 @@ answer.decode = function (buf, offset) {
   a.type = types.toString(buf.readUInt16BE(offset))
   if (a.type === 'OPT') {
     a.udpPayloadSize = buf.readUInt16BE(offset + 2)
+    a.extendedRcode = buf.readUInt8(offset + 4)
     a.ednsVersion = buf.readUInt8(offset + 5)
     a.flags = buf.readUInt16BE(offset + 6)
     a.flag_do = ((a.flags >> 15) & 0x1) === 1
