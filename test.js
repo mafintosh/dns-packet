@@ -321,6 +321,44 @@ tape('stream', function (t) {
   t.end()
 })
 
+tape('opt', function (t) {
+  const val = {
+    type: 'query',
+    questions: [{
+      type: 'A',
+      name: 'hello.a.com'
+    }],
+    additionals: [{
+      type: 'OPT',
+      name: '.',
+      udpPayloadSize: 4096
+    }]
+  }
+  testEncoder(t, packet, val)
+  let buf = packet.encode(val)
+  let val2 = packet.decode(buf)
+  const additional1 = val.additionals[0]
+  let additional2 = val2.additionals[0]
+  t.ok(compare(t, additional1.name, additional2.name), 'name matches')
+  t.ok(compare(t, additional1.udpPayloadSize, additional2.udpPayloadSize), 'udp payload size matches')
+  t.ok(compare(t, 0, additional2.flags), 'flags match')
+  additional1.flags = packet.DNSSEC_OK
+  additional1.extendedRcode = 0x80
+  // padding, see RFC 7830
+  additional1.options = [{
+    code: 12,
+    data: Buffer.alloc(31)
+  }]
+  buf = packet.encode(val)
+  val2 = packet.decode(buf)
+  additional2 = val2.additionals[0]
+  t.ok(compare(t, 1 << 15, additional2.flags), 'DO bit set in flags')
+  t.ok(compare(t, true, additional2.flag_do), 'DO bit set')
+  t.ok(compare(t, additional1.extendedRcode, additional2.extendedRcode), 'extended rcode matches')
+  t.ok(compare(t, additional1.options, additional2.options), 'options match')
+  t.end()
+})
+
 tape('unpack', function (t) {
   const buf = Buffer.from([
     0x00, 0x79,
