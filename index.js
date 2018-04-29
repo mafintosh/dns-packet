@@ -743,6 +743,319 @@ ropt.encodingLength = function (options) {
   return 2 + encodingLengthList(options || [], roption)
 }
 
+const rdnskey = exports.dnskey = {}
+
+rdnskey.PROTOCOL_DNSSEC = 3
+rdnskey.ZONE_KEY = 0x80
+rdnskey.SECURE_ENTRYPOINT = 0x8000
+
+rdnskey.encode = function (key, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(rdnskey.encodingLength(key))
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  const keydata = key.key
+  if (!Buffer.isBuffer(keydata)) {
+    throw new Error('Key must be a Buffer')
+  }
+
+  offset += 2 // Leave space for length
+  buf.writeUInt16BE(key.flags, offset)
+  offset += 2
+  buf.writeUInt8(rdnskey.PROTOCOL_DNSSEC, offset)
+  offset += 1
+  buf.writeUInt8(key.algorithm, offset)
+  offset += 1
+  keydata.copy(buf, offset, 0, keydata.length)
+  offset += keydata.length
+
+  rdnskey.encode.bytes = offset - oldOffset
+  buf.writeUInt16BE(rdnskey.encode.bytes, oldOffset)
+  return buf
+}
+
+rdnskey.encode.bytes = 0
+
+rdnskey.decode = function (buf, offset) {
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  var key = {}
+  var length = buf.readUInt16BE(offset)
+  offset += 2
+  key.flags = buf.readUInt16BE(offset)
+  offset += 2
+  if (buf.readUInt8(offset) !== rdnskey.PROTOCOL_DNSSEC) {
+    throw new Error('Protocol must be 3')
+  }
+  offset += 1
+  key.algorithm = buf.readUInt8(offset)
+  offset += 1
+  key.key = buf.slice(offset, offset + length)
+  offset += length
+  rdnskey.decode.bytes = offset - oldOffset
+  return key
+}
+
+rdnskey.decode.bytes = 0
+
+rdnskey.encodingLength = function (key) {
+  return 6 + Buffer.byteLength(key.key)
+}
+
+const rrrsig = exports.rrsig = {}
+
+rrrsig.encode = function (sig, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(rrrsig.encodingLength(sig))
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  const signature = sig.signature
+  if (!Buffer.isBuffer(signature)) {
+    throw new Error('Signature must be a Buffer')
+  }
+
+  offset += 2 // Leave space for length
+  buf.writeUInt16BE(types.toType(sig.typeCovered), offset)
+  offset += 2
+  buf.writeUInt8(sig.algorithm, offset)
+  offset += 1
+  buf.writeUInt8(sig.labels, offset)
+  offset += 1
+  buf.writeUInt32BE(sig.originalTTL, offset)
+  offset += 4
+  buf.writeUInt32BE(sig.expiration, offset)
+  offset += 4
+  buf.writeUInt32BE(sig.inception, offset)
+  offset += 4
+  buf.writeUInt16BE(sig.keyTag, offset)
+  offset += 2
+  name.encode(sig.signersName, buf, offset)
+  offset += name.encode.bytes
+  signature.copy(buf, offset, 0, signature.length)
+  offset += signature.length
+
+  rrrsig.encode.bytes = offset - oldOffset
+  buf.writeUInt16BE(rrrsig.encode.bytes, oldOffset)
+  return buf
+}
+
+rrrsig.encode.bytes = 0
+
+rrrsig.decode = function (buf, offset) {
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  var sig = {}
+  var length = buf.readUInt16BE(offset)
+  offset += 2
+  sig.typeCovered = types.toString(buf.readUInt16BE(offset))
+  offset += 2
+  sig.algorithm = buf.readUInt8(offset)
+  offset += 1
+  sig.labels = buf.readUInt8(offset)
+  offset += 1
+  sig.originalTTL = buf.readUInt32BE(offset)
+  offset += 4
+  sig.expiration = buf.readUInt32BE(offset)
+  offset += 4
+  sig.inception = buf.readUInt32BE(offset)
+  offset += 4
+  sig.keyTag = buf.readUInt16BE(offset)
+  offset += 2
+  sig.signersName = name.decode(buf, offset)
+  offset += name.decode.bytes
+  sig.signature = buf.slice(offset, offset + length)
+  offset += length
+  rrrsig.decode.bytes = offset - oldOffset
+  return sig
+}
+
+rrrsig.decode.bytes = 0
+
+rrrsig.encodingLength = function (sig) {
+  return 20 +
+    name.encodingLength(sig.signersName) +
+    Buffer.byteLength(sig.signature)
+}
+
+const typebitmap = {}
+
+typebitmap.encode = function (typelist, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(typebitmap.encodingLength(typelist))
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  var typesByWindow = []
+  for (var i = 0; i < typelist.length; i++) {
+    var typeid = types.toType(typelist[i])
+    if (typesByWindow[typeid >> 8] === undefined) {
+      typesByWindow[typeid >> 8] = []
+    }
+    typesByWindow[typeid >> 8][(typeid >> 3) & 0x1F] |= 1 << (7 - (typeid & 0x7))
+  }
+
+  for (i = 0; i < typesByWindow.length; i++) {
+    if (typesByWindow[i] !== undefined) {
+      var windowBuf = Buffer.from(typesByWindow[i])
+      buf.writeUInt8(i, offset)
+      offset += 1
+      buf.writeUInt8(windowBuf.length, offset)
+      offset += 1
+      windowBuf.copy(buf, offset)
+      offset += windowBuf.length
+    }
+  }
+
+  typebitmap.encode.bytes = offset - oldOffset
+  return buf
+}
+
+typebitmap.encode.bytes = 0
+
+typebitmap.decode = function (buf, offset, length) {
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  var typelist = []
+  while (offset - oldOffset < length) {
+    var window = buf.readUInt8(offset)
+    offset += 1
+    var windowLength = buf.readUInt8(offset)
+    offset += 1
+    for (var i = 0; i < windowLength; i++) {
+      var b = buf.readUInt8(offset + i)
+      for (var j = 0; j < 8; j++) {
+        if (b & (1 << (7 - j))) {
+          var typeid = types.toString((window << 8) | (i << 3) | j)
+          typelist.push(typeid)
+        }
+      }
+    }
+    offset += windowLength
+  }
+
+  typebitmap.decode.bytes = offset - oldOffset
+  return typelist
+}
+
+typebitmap.decode.bytes = 0
+
+typebitmap.encodingLength = function (typelist) {
+  var extents = []
+  for (var i = 0; i < typelist.length; i++) {
+    var typeid = types.toType(typelist[i])
+    extents[typeid >> 8] |= Math.max(extents[typeid >> 8] || 0, typeid & 0xFF)
+  }
+
+  var len = 0
+  for (i = 0; i < extents.length; i++) {
+    if (extents[i] !== undefined) {
+      len += 2 + Math.ceil((extents[i] + 1) / 8)
+    }
+  }
+
+  return len
+}
+
+const rnsec = exports.nsec = {}
+
+rnsec.encode = function (record, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(rnsec.encodingLength(record))
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  offset += 2 // Leave space for length
+  name.encode(record.nextDomain, buf, offset)
+  offset += name.encode.bytes
+  typebitmap.encode(record.rrtypes, buf, offset)
+  offset += typebitmap.encode.bytes
+
+  rnsec.encode.bytes = offset - oldOffset
+  buf.writeUInt16BE(rnsec.encode.bytes, oldOffset)
+  return buf
+}
+
+rnsec.encode.bytes = 0
+
+rnsec.decode = function (buf, offset) {
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  var record = {}
+  var length = buf.readUInt16BE(offset)
+  offset += 2
+  record.nextDomain = name.decode(buf, offset)
+  offset += name.decode.bytes
+  record.rrtypes = typebitmap.decode(buf, offset, length - (offset - oldOffset))
+  offset += typebitmap.decode.bytes
+
+  rnsec.decode.bytes = offset - oldOffset
+  return record
+}
+
+rnsec.decode.bytes = 0
+
+rnsec.encodingLength = function (record) {
+  return 2 +
+    name.encodingLength(record.nextDomain) +
+    typebitmap.encodingLength(record.rrtypes)
+}
+
+const rds = exports.ds = {}
+
+rds.encode = function (digest, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(rds.encodingLength(digest))
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  const digestdata = digest.digest
+  if (!Buffer.isBuffer(digestdata)) {
+    throw new Error('Digest must be a Buffer')
+  }
+
+  offset += 2 // Leave space for length
+  buf.writeUInt16BE(digest.keyTag, offset)
+  offset += 2
+  buf.writeUInt8(digest.algorithm, offset)
+  offset += 1
+  buf.writeUInt8(digest.digestType, offset)
+  offset += 1
+  digestdata.copy(buf, offset, 0, digestdata.length)
+  offset += digestdata.length
+
+  rds.encode.bytes = offset - oldOffset
+  buf.writeUInt16BE(rds.encode.bytes, oldOffset)
+  return buf
+}
+
+rds.encode.bytes = 0
+
+rds.decode = function (buf, offset) {
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  var digest = {}
+  var length = buf.readUInt16BE(offset)
+  offset += 2
+  digest.keyTag = buf.readUInt16BE(offset)
+  offset += 2
+  digest.algorithm = buf.readUInt8(offset)
+  offset += 1
+  digest.digestType = buf.readUInt8(offset)
+  offset += 1
+  digest.digest = buf.slice(offset, offset + length)
+  offset += length
+  rds.decode.bytes = offset - oldOffset
+  return digest
+}
+
+rds.decode.bytes = 0
+
+rds.encodingLength = function (digest) {
+  return 6 + Buffer.byteLength(digest.digest)
+}
+
 const renc = exports.record = function (type) {
   switch (type.toUpperCase()) {
     case 'A': return ra
@@ -759,6 +1072,10 @@ const renc = exports.record = function (type) {
     case 'SOA': return rsoa
     case 'MX': return rmx
     case 'OPT': return ropt
+    case 'DNSKEY': return rdnskey
+    case 'RRSIG': return rrrsig
+    case 'NSEC': return rnsec
+    case 'DS': return rds
   }
   return runknown
 }

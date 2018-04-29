@@ -359,6 +359,61 @@ tape('opt', function (t) {
   t.end()
 })
 
+tape('dnskey', function (t) {
+  testEncoder(t, packet.dnskey, {
+    flags: packet.dnskey.SECURE_ENTRYPOINT | packet.dnskey.ZONE_KEY,
+    algorithm: 1,
+    key: Buffer.from([0, 1, 2, 3, 4, 5])
+  })
+  t.end()
+})
+
+tape('rrsig', function (t) {
+  testEncoder(t, packet.rrsig, {
+    typeCovered: 'A',
+    algorithm: 1,
+    labels: 2,
+    originalTTL: 3600,
+    expiration: 1234,
+    inception: 1233,
+    keyTag: 2345,
+    signersName: 'foo.com',
+    signature: Buffer.from([0, 1, 2, 3, 4, 5])
+  })
+  t.end()
+})
+
+tape('nsec', function (t) {
+  testEncoder(t, packet.nsec, {
+    nextDomain: 'foo.com',
+    rrtypes: ['A', 'DNSKEY', 'CAA', 'DLV']
+  })
+
+  // Test with the sample NSEC from https://tools.ietf.org/html/rfc4034#section-4.3
+  var sampleNSEC = Buffer.from('003904686f7374076578616d706c6503636f6d00' +
+      '0006400100000003041b000000000000000000000000000000000000000000000' +
+      '000000020', 'hex')
+  var decoded = packet.nsec.decode(sampleNSEC)
+  t.ok(compare(t, decoded, {
+    nextDomain: 'host.example.com',
+    rrtypes: ['A', 'MX', 'RRSIG', 'NSEC', 'UNKNOWN_1234']
+  }))
+  var reencoded = packet.nsec.encode(decoded)
+  t.same(sampleNSEC.length, reencoded.length)
+  t.same(sampleNSEC, reencoded)
+  t.end()
+})
+
+tape('ds', function (t) {
+  testEncoder(t, packet.ds, {
+    keyTag: 1234,
+    algorithm: 1,
+    digestType: 1,
+    digest: Buffer.from([0, 1, 2, 3, 4, 5])
+  })
+  t.end()
+})
+
 tape('unpack', function (t) {
   const buf = Buffer.from([
     0x00, 0x79,

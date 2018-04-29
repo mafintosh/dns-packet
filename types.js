@@ -98,5 +98,6 @@ exports.toType = function (name) {
     case 'ANY': return 255
     case '*': return 255
   }
+  if (name.toUpperCase().startsWith('UNKNOWN_')) return parseInt(name.slice(8))
   return 0
 }
