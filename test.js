@@ -369,7 +369,7 @@ tape('dnskey', function (t) {
 })
 
 tape('rrsig', function (t) {
-  testEncoder(t, packet.rrsig, {
+  const testRRSIG = {
     typeCovered: 'A',
     algorithm: 1,
     labels: 2,
@@ -379,7 +379,15 @@ tape('rrsig', function (t) {
     keyTag: 2345,
     signersName: 'foo.com',
     signature: Buffer.from([0, 1, 2, 3, 4, 5])
-  })
+  }
+  testEncoder(t, packet.rrsig, testRRSIG)
+
+  // Check the signature length is correct with extra junk at the end
+  const buf = Buffer.allocUnsafe(packet.rrsig.encodingLength(testRRSIG) + 4)
+  packet.rrsig.encode(testRRSIG, buf)
+  const val2 = packet.rrsig.decode(buf)
+  t.ok(compare(t, testRRSIG, val2))
+
   t.end()
 })
 
@@ -390,7 +398,7 @@ tape('nsec', function (t) {
   })
 
   // Test with the sample NSEC from https://tools.ietf.org/html/rfc4034#section-4.3
-  var sampleNSEC = Buffer.from('003904686f7374076578616d706c6503636f6d00' +
+  var sampleNSEC = Buffer.from('003704686f7374076578616d706c6503636f6d00' +
       '0006400100000003041b000000000000000000000000000000000000000000000' +
       '000000020', 'hex')
   var decoded = packet.nsec.decode(sampleNSEC)

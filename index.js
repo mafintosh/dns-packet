@@ -770,7 +770,7 @@ rdnskey.encode = function (key, buf, offset) {
   offset += keydata.length
 
   rdnskey.encode.bytes = offset - oldOffset
-  buf.writeUInt16BE(rdnskey.encode.bytes, oldOffset)
+  buf.writeUInt16BE(rdnskey.encode.bytes - 2, oldOffset)
   return buf
 }
 
@@ -791,8 +791,8 @@ rdnskey.decode = function (buf, offset) {
   offset += 1
   key.algorithm = buf.readUInt8(offset)
   offset += 1
-  key.key = buf.slice(offset, offset + length)
-  offset += length
+  key.key = buf.slice(offset, oldOffset + length + 2)
+  offset += key.key.length
   rdnskey.decode.bytes = offset - oldOffset
   return key
 }
@@ -836,7 +836,7 @@ rrrsig.encode = function (sig, buf, offset) {
   offset += signature.length
 
   rrrsig.encode.bytes = offset - oldOffset
-  buf.writeUInt16BE(rrrsig.encode.bytes, oldOffset)
+  buf.writeUInt16BE(rrrsig.encode.bytes - 2, oldOffset)
   return buf
 }
 
@@ -865,8 +865,8 @@ rrrsig.decode = function (buf, offset) {
   offset += 2
   sig.signersName = name.decode(buf, offset)
   offset += name.decode.bytes
-  sig.signature = buf.slice(offset, offset + length)
-  offset += length
+  sig.signature = buf.slice(offset, oldOffset + length + 2)
+  offset += sig.signature.length
   rrrsig.decode.bytes = offset - oldOffset
   return sig
 }
@@ -972,7 +972,7 @@ rnsec.encode = function (record, buf, offset) {
   offset += typebitmap.encode.bytes
 
   rnsec.encode.bytes = offset - oldOffset
-  buf.writeUInt16BE(rnsec.encode.bytes, oldOffset)
+  buf.writeUInt16BE(rnsec.encode.bytes - 2, oldOffset)
   return buf
 }
 
@@ -1025,7 +1025,7 @@ rds.encode = function (digest, buf, offset) {
   offset += digestdata.length
 
   rds.encode.bytes = offset - oldOffset
-  buf.writeUInt16BE(rds.encode.bytes, oldOffset)
+  buf.writeUInt16BE(rds.encode.bytes - 2, oldOffset)
   return buf
 }
 
@@ -1044,8 +1044,8 @@ rds.decode = function (buf, offset) {
   offset += 1
   digest.digestType = buf.readUInt8(offset)
   offset += 1
-  digest.digest = buf.slice(offset, offset + length)
-  offset += length
+  digest.digest = buf.slice(offset, oldOffset + length + 2)
+  offset += digest.digest.length
   rds.decode.bytes = offset - oldOffset
   return digest
 }
