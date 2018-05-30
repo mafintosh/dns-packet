@@ -412,6 +412,18 @@ tape('nsec', function (t) {
   t.end()
 })
 
+tape('nsec3', function (t) {
+  testEncoder(t, packet.nsec3, {
+    algorithm: 1,
+    flags: 0,
+    iterations: 257,
+    salt: new Buffer([42, 42, 42]),
+    nextDomain: new Buffer([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]),
+    rrtypes: ['A', 'DNSKEY', 'CAA', 'DLV']
+  })
+  t.end()
+})
+
 tape('ds', function (t) {
   testEncoder(t, packet.ds, {
     keyTag: 1234,

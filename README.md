@@ -230,6 +230,19 @@ Currently the different available records are
 }
 ```
 
+#### `NSEC3`
+
+``` js
+{
+  algorithm: 1,
+  flags: 0,
+  iterations: 2,
+  salt: buffer,
+  nextDomain: buffer, // Hashed per RFC5155
+  rrtypes: ['A', 'TXT', 'RRSIG']
+}
+```
+
 #### `NULL`
 
 ``` js

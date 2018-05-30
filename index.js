@@ -1002,6 +1002,85 @@ rnsec.encodingLength = function (record) {
     typebitmap.encodingLength(record.rrtypes)
 }
 
+const rnsec3 = exports.nsec3 = {}
+
+rnsec3.encode = function (record, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(rnsec3.encodingLength(record))
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  const salt = record.salt
+  if (!Buffer.isBuffer(salt)) {
+    throw new Error('salt must be a Buffer')
+  }
+
+  const nextDomain = record.nextDomain
+  if (!Buffer.isBuffer(nextDomain)) {
+    throw new Error('nextDomain must be a Buffer')
+  }
+
+  offset += 2 // Leave space for length
+  buf.writeUInt8(record.algorithm, offset)
+  offset += 1
+  buf.writeUInt8(record.flags, offset)
+  offset += 1
+  buf.writeUInt16BE(record.iterations, offset)
+  offset += 2
+  buf.writeUInt8(salt.length, offset)
+  offset += 1
+  salt.copy(buf, offset, 0, salt.length)
+  offset += salt.length
+  buf.writeUInt8(nextDomain.length, offset)
+  offset += 1
+  nextDomain.copy(buf, offset, 0, nextDomain.length)
+  offset += nextDomain.length
+  typebitmap.encode(record.rrtypes, buf, offset)
+  offset += typebitmap.encode.bytes
+
+  rnsec3.encode.bytes = offset - oldOffset
+  buf.writeUInt16BE(rnsec3.encode.bytes - 2, oldOffset)
+  return buf
+}
+
+rnsec3.encode.bytes = 0
+
+rnsec3.decode = function (buf, offset) {
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  var record = {}
+  var length = buf.readUInt16BE(offset)
+  offset += 2
+  record.algorithm = buf.readUInt8(offset)
+  offset += 1
+  record.flags = buf.readUInt8(offset)
+  offset += 1
+  record.iterations = buf.readUInt16BE(offset)
+  offset += 2
+  const saltLength = buf.readUInt8(offset)
+  offset += 1
+  record.salt = buf.slice(offset, offset + saltLength)
+  offset += saltLength
+  const hashLength = buf.readUInt8(offset)
+  offset += 1
+  record.nextDomain = buf.slice(offset, offset + hashLength)
+  offset += hashLength
+  record.rrtypes = typebitmap.decode(buf, offset, length - (offset - oldOffset))
+  offset += typebitmap.decode.bytes
+
+  rnsec3.decode.bytes = offset - oldOffset
+  return record
+}
+
+rnsec3.decode.bytes = 0
+
+rnsec3.encodingLength = function (record) {
+  return 8 +
+    record.salt.length +
+    record.nextDomain.length +
+    typebitmap.encodingLength(record.rrtypes)
+}
+
 const rds = exports.ds = {}
 
 rds.encode = function (digest, buf, offset) {
@@ -1075,6 +1154,7 @@ const renc = exports.record = function (type) {
     case 'DNSKEY': return rdnskey
     case 'RRSIG': return rrrsig
     case 'NSEC': return rnsec
+    case 'NSEC3': return rnsec3
     case 'DS': return rds
   }
   return runknown
