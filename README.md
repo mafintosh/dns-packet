@@ -1,13 +1,11 @@
 # dns-packet
+[![](https://img.shields.io/npm/v/dns-packet.svg?style=flat)](https://www.npmjs.org/package/dns-packet) [![](https://img.shields.io/npm/dm/dns-packet.svg)](https://www.npmjs.org/package/dns-packet) [![](https://api.travis-ci.org/mafintosh/dns-packet.svg?style=flat)](https://travis-ci.org/mafintosh/dns-packet)
 
-An [abstract-encoding](https://github.com/mafintosh/abstract-encoding) compliant module for encoding / decoding DNS packets.
-Lifted out of [multicast-dns](https://github.com/mafintosh/multicast-dns) as a separate module.
+An [abstract-encoding](https://github.com/mafintosh/abstract-encoding) compliant module for encoding / decoding DNS packets. Lifted out of [multicast-dns](https://github.com/mafintosh/multicast-dns) as a separate module.
 
 ```
 npm install dns-packet
 ```
-
-[![build status](https://travis-ci.org/mafintosh/dns-packet.svg?branch=master)](https://travis-ci.org/mafintosh/dns-packet)
 
 ## UDP Usage
 
@@ -128,7 +126,7 @@ And an answers, additional, or authority looks like this
 }
 ```
 
-Currently the different available records are
+## Supported record types
 
 #### `A`
 
@@ -178,7 +176,7 @@ Currently the different available records are
 {
   flags: 257, // 16 bits
   algorithm: 1, // octet
-  key: buffer
+  key: Buffer
 }
 ```
 
@@ -189,7 +187,7 @@ Currently the different available records are
   keyTag: 12345,
   algorithm: 8,
   digestType: 1,
-  digest: buffer
+  digest: Buffer
 }
 ```
 
@@ -237,8 +235,8 @@ Currently the different available records are
   algorithm: 1,
   flags: 0,
   iterations: 2,
-  salt: buffer,
-  nextDomain: buffer, // Hashed per RFC5155
+  salt: Buffer,
+  nextDomain: Buffer, // Hashed per RFC5155
   rrtypes: ['A', 'TXT', 'RRSIG']
 }
 ```
@@ -286,7 +284,7 @@ Currently the different available records are
   inception: timestamp,
   keyTag: 12345,
   signersName: 'a.name',
-  signature: buffer
+  signature: Buffer
 }
 ```
 
@@ -330,7 +328,7 @@ Currently the different available records are
 
 When encoding, scalar values are converted to an array and strings are converted to UTF-8 encoded Buffers. When decoding, the return value will always be an array of Buffer.
 
-If you need another one, open an issue and we'll try to add it.
+If you need another record type, open an issue and we'll try to add it.
 
 ## License
 
