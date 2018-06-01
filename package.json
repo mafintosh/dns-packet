@@ -7,14 +7,13 @@
   "repository": "mafintosh/dns-packet",
   "homepage": "https://github.com/mafintosh/dns-packet",
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "scripts": {
     "test": "eslint --color *.js && tape test.js"
   },
   "dependencies": {
-    "ip": "^1.1.5",
-    "safe-buffer": "^5.1.1"
+    "ip": "^1.1.5"
   },
   "devDependencies": {
     "eslint": "^4.19.1",

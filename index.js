@@ -5,7 +5,6 @@ const rcodes = require('./rcodes')
 const opcodes = require('./opcodes')
 const classes = require('./classes')
 const ip = require('ip')
-const Buffer = require('safe-buffer').Buffer
 
 const QUERY_FLAG = 0
 const RESPONSE_FLAG = 1 << 15

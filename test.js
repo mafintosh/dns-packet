@@ -4,7 +4,6 @@ const tape = require('tape')
 const packet = require('./')
 const rcodes = require('./rcodes')
 const opcodes = require('./opcodes')
-const Buffer = require('safe-buffer').Buffer
 
 tape('unknown', function (t) {
   testEncoder(t, packet.unknown, Buffer.from('hello world'))
@@ -417,8 +416,8 @@ tape('nsec3', function (t) {
     algorithm: 1,
     flags: 0,
     iterations: 257,
-    salt: new Buffer([42, 42, 42]),
-    nextDomain: new Buffer([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]),
+    salt: Buffer.from([42, 42, 42]),
+    nextDomain: Buffer.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]),
     rrtypes: ['A', 'DNSKEY', 'CAA', 'DLV']
   })
   t.end()
