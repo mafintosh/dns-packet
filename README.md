@@ -146,15 +146,72 @@ Currently the different available records are
 }
 ```
 
-#### `TXT`
+#### `CAA`
 
 ``` js
 {
-  data: 'text' || Buffer || [ Buffer || 'text' ]
+  flags: 128, // octet
+  tag: 'issue|issuewild|iodef',
+  value: 'ca.example.net'
 }
 ```
 
-When encoding, scalar values are converted to an array and strings are converted to UTF-8 encoded Buffers. When decoding, the return value will always be an array of Buffer.
+#### `CNAME`
+
+``` js
+{
+  data: 'cname.to.another.record'
+}
+```
+
+#### `DNAME`
+
+``` js
+{
+  data: 'dname.to.another.record'
+}
+```
+
+#### `DNSKEY`
+
+``` js
+{
+  flags: 257, // 16 bits
+  algorithm: 1, // octet
+  key: buffer
+}
+```
+
+#### `DS`
+
+``` js
+{
+  keyTag: 12345,
+  algorithm: 8,
+  digestType: 1,
+  digest: buffer
+}
+```
+
+#### `HINFO`
+
+``` js
+{
+  data: {
+    cpu: 'cpu info',
+    os: 'os info'
+  }
+}
+```
+
+#### `MX`
+
+``` js
+{
+  preference: 10,
+  exchange: 'mail.example.net'
+}
+```
 
 #### `NS`
 
@@ -164,11 +221,72 @@ When encoding, scalar values are converted to an array and strings are converted
 }
 ```
 
+#### `NSEC`
+
+``` js
+{
+  nextDomain: 'a.domain',
+  rrtypes: ['A', 'TXT', 'RRSIG']
+}
+```
+
+#### `NSEC3`
+
+``` js
+{
+  algorithm: 1,
+  flags: 0,
+  iterations: 2,
+  salt: buffer,
+  nextDomain: buffer, // Hashed per RFC5155
+  rrtypes: ['A', 'TXT', 'RRSIG']
+}
+```
+
 #### `NULL`
 
 ``` js
 {
   data: Buffer('any binary data')
+}
+```
+
+#### `OPT`
+
+``` js
+{
+  type: 'OPT',
+  name: '.',
+  udpPayloadSize: 4096,
+  flags: packet.DNSSEC_OK,
+  options: [{
+    code: 12,
+    data: Buffer.alloc(31)
+  }]
+}
+```
+
+#### `PTR`
+
+``` js
+{
+  data: 'points.to.another.record'
+}
+```
+
+#### `RRSIG`
+
+``` js
+{
+  typeCovered: 'A',
+  algorithm: 8,
+  labels: 1,
+  originalTTL: 3600,
+  expiration: timestamp,
+  inception: timestamp,
+  keyTag: 12345,
+  signersName: 'a.name',
+  signature: buffer
 }
 ```
 
@@ -202,74 +320,15 @@ When encoding, scalar values are converted to an array and strings are converted
 }
 ```
 
-#### `HINFO`
+#### `TXT`
 
 ``` js
 {
-  data: {
-    cpu: 'cpu info',
-    os: 'os info'
-  }
+  data: 'text' || Buffer || [ Buffer || 'text' ]
 }
 ```
 
-#### `PTR`
-
-``` js
-{
-  data: 'points.to.another.record'
-}
-```
-
-#### `CNAME`
-
-``` js
-{
-  data: 'cname.to.another.record'
-}
-```
-
-#### `DNAME`
-
-``` js
-{
-  data: 'dname.to.another.record'
-}
-```
-
-#### `CAA`
-
-``` js
-{
-  flags: 128, // octet
-  tag: 'issue|issuewild|iodef',
-  value: 'ca.example.net'
-}
-```
-
-#### `MX`
-
-``` js
-{
-  preference: 10,
-  exchange: 'mail.example.net'
-}
-```
-
-#### `OPT`
-
-``` js
-{
-  type: 'OPT',
-  name: '.',
-  udpPayloadSize: 4096,
-  flags: packet.DNSSEC_OK,
-  options: [{
-    code: 12,
-    data: Buffer.alloc(31)
-  }]
-}
-```
+When encoding, scalar values are converted to an array and strings are converted to UTF-8 encoded Buffers. When decoding, the return value will always be an array of Buffer.
 
 If you need another one, open an issue and we'll try to add it.
 

@@ -359,6 +359,81 @@ tape('opt', function (t) {
   t.end()
 })
 
+tape('dnskey', function (t) {
+  testEncoder(t, packet.dnskey, {
+    flags: packet.dnskey.SECURE_ENTRYPOINT | packet.dnskey.ZONE_KEY,
+    algorithm: 1,
+    key: Buffer.from([0, 1, 2, 3, 4, 5])
+  })
+  t.end()
+})
+
+tape('rrsig', function (t) {
+  const testRRSIG = {
+    typeCovered: 'A',
+    algorithm: 1,
+    labels: 2,
+    originalTTL: 3600,
+    expiration: 1234,
+    inception: 1233,
+    keyTag: 2345,
+    signersName: 'foo.com',
+    signature: Buffer.from([0, 1, 2, 3, 4, 5])
+  }
+  testEncoder(t, packet.rrsig, testRRSIG)
+
+  // Check the signature length is correct with extra junk at the end
+  const buf = Buffer.allocUnsafe(packet.rrsig.encodingLength(testRRSIG) + 4)
+  packet.rrsig.encode(testRRSIG, buf)
+  const val2 = packet.rrsig.decode(buf)
+  t.ok(compare(t, testRRSIG, val2))
+
+  t.end()
+})
+
+tape('nsec', function (t) {
+  testEncoder(t, packet.nsec, {
+    nextDomain: 'foo.com',
+    rrtypes: ['A', 'DNSKEY', 'CAA', 'DLV']
+  })
+
+  // Test with the sample NSEC from https://tools.ietf.org/html/rfc4034#section-4.3
+  var sampleNSEC = Buffer.from('003704686f7374076578616d706c6503636f6d00' +
+      '0006400100000003041b000000000000000000000000000000000000000000000' +
+      '000000020', 'hex')
+  var decoded = packet.nsec.decode(sampleNSEC)
+  t.ok(compare(t, decoded, {
+    nextDomain: 'host.example.com',
+    rrtypes: ['A', 'MX', 'RRSIG', 'NSEC', 'UNKNOWN_1234']
+  }))
+  var reencoded = packet.nsec.encode(decoded)
+  t.same(sampleNSEC.length, reencoded.length)
+  t.same(sampleNSEC, reencoded)
+  t.end()
+})
+
+tape('nsec3', function (t) {
+  testEncoder(t, packet.nsec3, {
+    algorithm: 1,
+    flags: 0,
+    iterations: 257,
+    salt: new Buffer([42, 42, 42]),
+    nextDomain: new Buffer([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]),
+    rrtypes: ['A', 'DNSKEY', 'CAA', 'DLV']
+  })
+  t.end()
+})
+
+tape('ds', function (t) {
+  testEncoder(t, packet.ds, {
+    keyTag: 1234,
+    algorithm: 1,
+    digestType: 1,
+    digest: Buffer.from([0, 1, 2, 3, 4, 5])
+  })
+  t.end()
+})
+
 tape('unpack', function (t) {
   const buf = Buffer.from([
     0x00, 0x79,
