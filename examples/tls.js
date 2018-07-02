@@ -1,19 +1,19 @@
 'use strict'
 
 const tls = require('tls')
-const packet = require('..')
+const dnsPacket = require('..')
 
 var response = null
-var expected_length = 0
+var expectedLength = 0
 
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function getRandomInt (min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-const encodedPacket = packet.streamEncode({
+const encodedPacket = dnsPacket.streamEncode({
   type: 'query',
   id: getRandomInt(1, 65534),
-  flags: packet.RECURSION_DESIRED,
+  flags: dnsPacket.RECURSION_DESIRED,
   questions: [{
     type: 'A',
     name: 'google.com'
@@ -40,7 +40,7 @@ client.on('data', function (data) {
   if (response == null) {
     if (data.byteLength > 1) {
       const plen = data.readUInt16BE(0)
-      expected_length = plen
+      expectedLength = plen
       if (plen < 12) {
         throw new Error('below DNS minimum packet length')
       }
@@ -50,8 +50,8 @@ client.on('data', function (data) {
     response = Buffer.concat([response, data])
   }
 
-  if (response.byteLength >= expected_length) {
-    console.log(packet.streamDecode(response))
+  if (response.byteLength >= expectedLength) {
+    console.log(dnsPacket.streamDecode(response))
     client.destroy()
   }
 })

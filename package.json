@@ -10,7 +10,7 @@
     "node": ">=6"
   },
   "scripts": {
-    "test": "eslint --color *.js && tape test.js"
+    "test": "eslint --color *.js examples/*.js && tape test.js"
   },
   "dependencies": {
     "ip": "^1.1.5"

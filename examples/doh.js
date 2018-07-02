@@ -8,17 +8,17 @@
  * LICENSE: MIT
  */
 
-const packet = require('..')
+const dnsPacket = require('..')
 const https = require('https')
 
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function getRandomInt (min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-const encodedPacket = packet.encode({
+const encodeddnsPacket = dnsPacket.encode({
   type: 'query',
   id: getRandomInt(1, 65534),
-  flags: packet.RECURSION_DESIRED,
+  flags: dnsPacket.RECURSION_DESIRED,
   questions: [{
     type: 'A',
     name: 'google.com'
@@ -32,7 +32,7 @@ const options = {
   method: 'POST',
   headers: {
     'Content-Type': 'application/dns-udpwireformat',
-    'Content-Length': Buffer.byteLength(encodedPacket)
+    'Content-Length': Buffer.byteLength(encodeddnsPacket)
   }
 }
 
@@ -41,12 +41,12 @@ const request = https.request(options, (response) => {
   console.log('headers:', response.headers)
 
   response.on('data', (d) => {
-    console.log(packet.decode(d))
+    console.log(dnsPacket.decode(d))
   })
 })
 
 request.on('error', (e) => {
   console.error(e)
 })
-request.write(encodedPacket)
+request.write(encodeddnsPacket)
 request.end()

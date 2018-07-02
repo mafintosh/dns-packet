@@ -1,18 +1,18 @@
 'use strict'
 
-const packet = require('..')
+const dnsPacket = require('..')
 const dgram = require('dgram')
 
 const socket = dgram.createSocket('udp4')
 
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function getRandomInt (min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-const buf = packet.encode({
+const buf = dnsPacket.encode({
   type: 'query',
   id: getRandomInt(1, 65534),
-  flags: packet.RECURSION_DESIRED,
+  flags: dnsPacket.RECURSION_DESIRED,
   questions: [{
     type: 'A',
     name: 'google.com'
@@ -21,7 +21,7 @@ const buf = packet.encode({
 
 socket.on('message', function (message, rinfo) {
   console.log(rinfo)
-  console.log(packet.decode(message)) // prints out a response from google dns
+  console.log(dnsPacket.decode(message)) // prints out a response from google dns
   socket.close()
 })
 
