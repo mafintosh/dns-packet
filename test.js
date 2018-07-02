@@ -221,6 +221,15 @@ tape('response', function (t) {
     }]
   })
 
+  testEncoder(t, packet, {
+    type: 'response',
+    answers: [{
+      type: 'TXT',
+      name: 'emptytxt.com',
+      data: ''
+    }]
+  })
+
   t.end()
 })
 
@@ -497,8 +506,13 @@ function compare (t, a, b) {
   if (typeof a === 'object' && a && b) {
     const keys = Object.keys(a)
     for (let i = 0; i < keys.length; i++) {
-      if (!compare(t, a[keys[i]], b[keys[i]])) return false
+      if (!compare(t, a[keys[i]], b[keys[i]])) {
+        return false
+      }
     }
+  } else if (Array.isArray(b) && !Array.isArray(a)) {
+    // TXT always decode as array
+    return a.toString() === b[0].toString()
   } else {
     return a === b
   }

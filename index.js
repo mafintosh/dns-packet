@@ -1238,7 +1238,8 @@ answer.decode = function (buf, offset) {
 answer.decode.bytes = 0
 
 answer.encodingLength = function (a) {
-  return name.encodingLength(a.name) + 8 + renc(a.type).encodingLength(a.data || a.options)
+  const data = (a.data !== null && a.data !== undefined) ? a.data : a.options
+  return name.encodingLength(a.name) + 8 + renc(a.type).encodingLength(data)
 }
 
 const question = exports.question = {}
