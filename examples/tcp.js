@@ -10,7 +10,7 @@ function getRandomInt (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-const encodedPacket = dnsPacket.streamEncode({
+const buf = dnsPacket.streamEncode({
   type: 'query',
   id: getRandomInt(1, 65534),
   flags: dnsPacket.RECURSION_DESIRED,
@@ -23,7 +23,7 @@ const encodedPacket = dnsPacket.streamEncode({
 const client = new net.Socket()
 client.connect(53, '8.8.8.8', function () {
   console.log('Connected')
-  client.write(encodedPacket)
+  client.write(buf)
 })
 
 client.on('data', function (data) {

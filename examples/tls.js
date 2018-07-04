@@ -10,7 +10,7 @@ function getRandomInt (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-const encodedPacket = dnsPacket.streamEncode({
+const buf = dnsPacket.streamEncode({
   type: 'query',
   id: getRandomInt(1, 65534),
   flags: dnsPacket.RECURSION_DESIRED,
@@ -32,7 +32,7 @@ const options = {
 
 const client = tls.connect(options, () => {
   console.log('client connected')
-  client.write(encodedPacket)
+  client.write(buf)
 })
 
 client.on('data', function (data) {

@@ -15,7 +15,7 @@ function getRandomInt (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-const encodeddnsPacket = dnsPacket.encode({
+const buf = dnsPacket.encode({
   type: 'query',
   id: getRandomInt(1, 65534),
   flags: dnsPacket.RECURSION_DESIRED,
@@ -32,7 +32,7 @@ const options = {
   method: 'POST',
   headers: {
     'Content-Type': 'application/dns-udpwireformat',
-    'Content-Length': Buffer.byteLength(encodeddnsPacket)
+    'Content-Length': Buffer.byteLength(buf)
   }
 }
 
@@ -48,5 +48,5 @@ const request = https.request(options, (response) => {
 request.on('error', (e) => {
   console.error(e)
 })
-request.write(encodeddnsPacket)
+request.write(buf)
 request.end()
