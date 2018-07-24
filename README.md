@@ -10,12 +10,12 @@ npm install dns-packet
 ## UDP Usage
 
 ``` js
-var dnsPacket = require('dns-packet')
-var dgram = require('dgram')
+const dnsPacket = require('dns-packet')
+const dgram = require('dgram')
 
-var socket = dgram.createSocket('udp4')
+const socket = dgram.createSocket('udp4')
 
-var buf = dnsPacket.encode({
+const buf = dnsPacket.encode({
   type: 'query',
   id: 1,
   flags: dnsPacket.RECURSION_DESIRED,
@@ -26,7 +26,7 @@ var buf = dnsPacket.encode({
   }]
 })
 
-socket.on('message', function (message) {
+socket.on('message', message => {
   console.log(dnsPacket.decode(message)) // prints out a response from google dns
 })
 
