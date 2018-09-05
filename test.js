@@ -50,7 +50,7 @@ tape('null', function (t) {
 })
 
 tape('hinfo', function (t) {
-  testEncoder(t, packet.hinfo, {cpu: 'intel', os: 'best one'})
+  testEncoder(t, packet.hinfo, { cpu: 'intel', os: 'best one' })
   t.end()
 })
 
@@ -70,21 +70,21 @@ tape('dname', function (t) {
 })
 
 tape('srv', function (t) {
-  testEncoder(t, packet.srv, {port: 9999, target: 'hello.world.com'})
-  testEncoder(t, packet.srv, {port: 9999, target: 'hello.world.com', priority: 42, weight: 10})
+  testEncoder(t, packet.srv, { port: 9999, target: 'hello.world.com' })
+  testEncoder(t, packet.srv, { port: 9999, target: 'hello.world.com', priority: 42, weight: 10 })
   t.end()
 })
 
 tape('caa', function (t) {
-  testEncoder(t, packet.caa, {flags: 128, tag: 'issue', value: 'letsencrypt.org', issuerCritical: true})
-  testEncoder(t, packet.caa, {tag: 'issue', value: 'letsencrypt.org', issuerCritical: true})
-  testEncoder(t, packet.caa, {tag: 'issue', value: 'letsencrypt.org'})
+  testEncoder(t, packet.caa, { flags: 128, tag: 'issue', value: 'letsencrypt.org', issuerCritical: true })
+  testEncoder(t, packet.caa, { tag: 'issue', value: 'letsencrypt.org', issuerCritical: true })
+  testEncoder(t, packet.caa, { tag: 'issue', value: 'letsencrypt.org' })
   t.end()
 })
 
 tape('mx', function (t) {
-  testEncoder(t, packet.mx, {preference: 10, exchange: 'mx.hello.world.com'})
-  testEncoder(t, packet.mx, {exchange: 'mx.hello.world.com'})
+  testEncoder(t, packet.mx, { preference: 10, exchange: 'mx.hello.world.com' })
+  testEncoder(t, packet.mx, { exchange: 'mx.hello.world.com' })
   t.end()
 })
 
