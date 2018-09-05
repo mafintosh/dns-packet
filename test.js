@@ -404,6 +404,26 @@ tape('nsec', function (t) {
     nextDomain: 'foo.com',
     rrtypes: ['A', 'DNSKEY', 'CAA', 'DLV']
   })
+  testEncoder(t, packet.nsec, {
+    nextDomain: 'foo.com',
+    rrtypes: ['TXT'] // 16
+  })
+  testEncoder(t, packet.nsec, {
+    nextDomain: 'foo.com',
+    rrtypes: ['TKEY'] // 249
+  })
+  testEncoder(t, packet.nsec, {
+    nextDomain: 'foo.com',
+    rrtypes: ['RRSIG', 'NSEC']
+  })
+  testEncoder(t, packet.nsec, {
+    nextDomain: 'foo.com',
+    rrtypes: ['TXT', 'RRSIG']
+  })
+  testEncoder(t, packet.nsec, {
+    nextDomain: 'foo.com',
+    rrtypes: ['TXT', 'NSEC']
+  })
 
   // Test with the sample NSEC from https://tools.ietf.org/html/rfc4034#section-4.3
   var sampleNSEC = Buffer.from('003704686f7374076578616d706c6503636f6d00' +

@@ -944,7 +944,7 @@ typebitmap.encodingLength = function (typelist) {
   var extents = []
   for (var i = 0; i < typelist.length; i++) {
     var typeid = types.toType(typelist[i])
-    extents[typeid >> 8] |= Math.max(extents[typeid >> 8] || 0, typeid & 0xFF)
+    extents[typeid >> 8] = Math.max(extents[typeid >> 8] || 0, typeid & 0xFF)
   }
 
   var len = 0
