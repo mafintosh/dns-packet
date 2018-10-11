@@ -1,3 +1,5 @@
+This is a react native friendly version of [dns-server](https://github.com/mafintosh/dns-packet). All the credit to [mafintosh](https://github.com/mafintosh).
+
 # dns-packet
 [![](https://img.shields.io/npm/v/dns-packet.svg?style=flat)](https://www.npmjs.org/package/dns-packet) [![](https://img.shields.io/npm/dm/dns-packet.svg)](https://www.npmjs.org/package/dns-packet) [![](https://api.travis-ci.org/mafintosh/dns-packet.svg?style=flat)](https://travis-ci.org/mafintosh/dns-packet)
 
