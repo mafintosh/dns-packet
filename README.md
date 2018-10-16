@@ -150,7 +150,8 @@ And an answers, additional, or authority looks like this
 {
   flags: 128, // octet
   tag: 'issue|issuewild|iodef',
-  value: 'ca.example.net'
+  value: 'ca.example.net',
+  issuerCritical: false
 }
 ```
 
