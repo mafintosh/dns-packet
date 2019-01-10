@@ -878,6 +878,36 @@ rrrsig.encodingLength = function (sig) {
     Buffer.byteLength(sig.signature)
 }
 
+const rrp = exports.rp = {}
+
+rrp.encode = function (data, buf, offset) {
+  if (!buf) buf = Buffer.allocUnsafe(rrp.encodingLength(data))
+  if (!offset) offset = 0
+
+  name.encode(data, buf, offset + 2)
+  buf.writeUInt16BE(name.encode.bytes, offset)
+  rrp.encode.bytes = name.encode.bytes + 2
+  return buf
+}
+
+rrp.encode.bytes = 0
+
+rrp.decode = function (buf, offset) {
+  if (!offset) offset = 0
+
+  const len = buf.readUInt16BE(offset)
+  const dd = name.decode(buf, offset + 2)
+
+  rrp.decode.bytes = len + 2
+  return dd
+}
+
+rrp.decode.bytes = 0
+
+rrp.encodingLength = function (data) {
+  return name.encodingLength(data) + 2
+}
+
 const typebitmap = {}
 
 typebitmap.encode = function (typelist, buf, offset) {
@@ -1152,6 +1182,7 @@ const renc = exports.record = function (type) {
     case 'OPT': return ropt
     case 'DNSKEY': return rdnskey
     case 'RRSIG': return rrrsig
+    case 'RP': return rrp
     case 'NSEC': return rnsec
     case 'NSEC3': return rnsec3
     case 'DS': return rds

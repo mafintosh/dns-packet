@@ -289,6 +289,14 @@ And an answers, additional, or authority looks like this
 }
 ```
 
+#### `RP`
+
+``` js
+{
+  data: mbox-dname
+}
+```
+
 #### `SOA`
 
 ``` js
