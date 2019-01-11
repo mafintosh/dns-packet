@@ -399,6 +399,11 @@ tape('rrsig', function (t) {
   t.end()
 })
 
+tape('rrp', function (t) {
+  testEncoder(t, packet.rp, 'rp.world.com')
+  t.end()
+})
+
 tape('nsec', function (t) {
   testEncoder(t, packet.nsec, {
     nextDomain: 'foo.com',
