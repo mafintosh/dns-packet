@@ -293,7 +293,8 @@ And an answers, additional, or authority looks like this
 
 ``` js
 {
-  data: mbox-dname
+  mbox: mbox-dname,
+  txt: txt-dname
 }
 ```
 
