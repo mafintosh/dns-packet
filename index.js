@@ -881,12 +881,15 @@ rrrsig.encodingLength = function (sig) {
 const rrp = exports.rp = {}
 
 rrp.encode = function (data, buf, offset) {
+  data.txt = data.txt || '.'
   if (!buf) buf = Buffer.allocUnsafe(rrp.encodingLength(data))
   if (!offset) offset = 0
 
-  name.encode(data, buf, offset + 2)
-  buf.writeUInt16BE(name.encode.bytes, offset)
-  rrp.encode.bytes = name.encode.bytes + 2
+  string.encode(data.mbox, buf, offset)
+  offset += string.encode.bytes
+  string.encode(data.txt, buf, offset)
+
+  rrp.encode.bytes = rrp.encodingLength(data)
   return buf
 }
 
@@ -895,17 +898,22 @@ rrp.encode.bytes = 0
 rrp.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  const len = buf.readUInt16BE(offset)
-  const dd = name.decode(buf, offset + 2)
+  const oldOffset = offset
 
-  rrp.decode.bytes = len + 2
-  return dd
+  const data = {}
+  data.mbox = string.decode(buf, offset)
+  offset += string.decode.bytes
+  data.txt = string.decode(buf, offset)
+  offset += string.decode.bytes
+
+  rrp.decode.bytes = offset - oldOffset
+  return data
 }
 
 rrp.decode.bytes = 0
 
 rrp.encodingLength = function (data) {
-  return name.encodingLength(data) + 2
+  return string.encodingLength(data.mbox || data) + string.encodingLength(data.txt || '.') + 2
 }
 
 const typebitmap = {}

@@ -400,7 +400,13 @@ tape('rrsig', function (t) {
 })
 
 tape('rrp', function (t) {
-  testEncoder(t, packet.rp, 'rp.world.com')
+  testEncoder(t, packet.rp, {
+    mbox: 'rp.world.com',
+    txt: 'hello'
+  })
+  testEncoder(t, packet.rp, {
+    mbox: 'rp.world.com'
+  })
   t.end()
 })
 
