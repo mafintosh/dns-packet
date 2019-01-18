@@ -114,7 +114,7 @@ A question looks like this
 }
 ```
 
-And an answers, additional, or authority looks like this
+And an answer, additional, or authority looks like this
 
 ``` js
 {
