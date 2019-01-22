@@ -1,11 +1,15 @@
+# Version 5.1.0 - 2019-01-22
+
+- Feature: Added support for the RP record type.
+
 # Version 5.0.0 - 2018-06-01
 
-- Breaking: Node.js 6.0.0 or greater is now required
-- Feature: Added support for DNSSEC record types
+- Breaking: Node.js 6.0.0 or greater is now required.
+- Feature: Added support for DNSSEC record types.
 
 # Version 4.1.0 - 2018-02-11
 
-- Feature: Added the MX record type.
+- Feature: Added support for the MX record type.
 
 # Version 4.0.0 - 2018-02-04
 
