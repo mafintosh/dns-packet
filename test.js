@@ -405,9 +405,12 @@ tape('rrp', function (t) {
     txt: 'baz.bar.com'
   })
   testEncoder(t, packet.rp, {
-    mbox: 'rp.world.com',
-    txt: '.'
+    mbox: 'foo.bar.com'
   })
+  testEncoder(t, packet.rp, {
+    txt: 'baz.bar.com'
+  })
+  testEncoder(t, packet.rp, {})
   t.end()
 })
 

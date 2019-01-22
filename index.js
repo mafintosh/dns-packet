@@ -913,7 +913,7 @@ rrp.decode = function (buf, offset) {
 rrp.decode.bytes = 0
 
 rrp.encodingLength = function (data) {
-  return 2 + name.encodingLength(data.mbox) + name.encodingLength(data.txt || '.')
+  return 2 + name.encodingLength(data.mbox || '.') + name.encodingLength(data.txt || '.')
 }
 
 const typebitmap = {}
