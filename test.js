@@ -401,11 +401,12 @@ tape('rrsig', function (t) {
 
 tape('rrp', function (t) {
   testEncoder(t, packet.rp, {
-    mbox: 'rp.world.com',
-    txt: 'hello'
+    mbox: 'foo.bar.com',
+    txt: 'baz.bar.com'
   })
   testEncoder(t, packet.rp, {
-    mbox: 'rp.world.com'
+    mbox: 'rp.world.com',
+    txt: '.'
   })
   t.end()
 })

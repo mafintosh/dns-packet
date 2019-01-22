@@ -881,15 +881,17 @@ rrrsig.encodingLength = function (sig) {
 const rrp = exports.rp = {}
 
 rrp.encode = function (data, buf, offset) {
-  data.txt = data.txt || '.'
   if (!buf) buf = Buffer.allocUnsafe(rrp.encodingLength(data))
   if (!offset) offset = 0
+  const oldOffset = offset
 
-  string.encode(data.mbox, buf, offset)
-  offset += string.encode.bytes
-  string.encode(data.txt, buf, offset)
-
-  rrp.encode.bytes = rrp.encodingLength(data)
+  offset += 2 // Leave space for length
+  name.encode(data.mbox || '.', buf, offset)
+  offset += name.encode.bytes
+  name.encode(data.txt || '.', buf, offset)
+  offset += name.encode.bytes
+  rrp.encode.bytes = offset - oldOffset
+  buf.writeUInt16BE(rrp.encode.bytes - 2, oldOffset)
   return buf
 }
 
@@ -897,15 +899,13 @@ rrp.encode.bytes = 0
 
 rrp.decode = function (buf, offset) {
   if (!offset) offset = 0
-
   const oldOffset = offset
 
   const data = {}
-  data.mbox = string.decode(buf, offset)
-  offset += string.decode.bytes
-  data.txt = string.decode(buf, offset)
-  offset += string.decode.bytes
-
+  offset += 2
+  data.mbox = name.decode(buf, offset) || '.'
+  offset += name.decode.bytes
+  data.txt = name.decode(buf, offset) || '.'
   rrp.decode.bytes = offset - oldOffset
   return data
 }
@@ -913,7 +913,7 @@ rrp.decode = function (buf, offset) {
 rrp.decode.bytes = 0
 
 rrp.encodingLength = function (data) {
-  return string.encodingLength(data.mbox || data) + string.encodingLength(data.txt || '.') + 2
+  return 2 + name.encodingLength(data.mbox) + name.encodingLength(data.txt || '.')
 }
 
 const typebitmap = {}

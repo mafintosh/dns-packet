@@ -293,8 +293,8 @@ And an answer, additional, or authority looks like this
 
 ``` js
 {
-  mbox: mbox-dname,
-  txt: txt-dname
+  mbox: 'admin.example.com',
+  txt: 'txt.example.com'
 }
 ```
 
