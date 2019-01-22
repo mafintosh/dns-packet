@@ -21,7 +21,6 @@ const buf = dnsPacket.encode({
   flags: dnsPacket.RECURSION_DESIRED,
   questions: [{
     type: 'A',
-    class: 'IN',
     name: 'google.com'
   }]
 })
