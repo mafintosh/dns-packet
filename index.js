@@ -906,6 +906,7 @@ rrp.decode = function (buf, offset) {
   data.mbox = name.decode(buf, offset) || '.'
   offset += name.decode.bytes
   data.txt = name.decode(buf, offset) || '.'
+  offset += name.decode.bytes
   rrp.decode.bytes = offset - oldOffset
   return data
 }
