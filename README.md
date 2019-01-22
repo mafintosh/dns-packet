@@ -273,6 +273,15 @@ And an answer, additional, or authority looks like this
 }
 ```
 
+#### `RP`
+
+``` js
+{
+  mbox: 'admin.example.com',
+  txt: 'txt.example.com'
+}
+```
+
 #### `RRSIG`
 
 ``` js
@@ -286,15 +295,6 @@ And an answer, additional, or authority looks like this
   keyTag: 12345,
   signersName: 'a.name',
   signature: Buffer
-}
-```
-
-#### `RP`
-
-``` js
-{
-  mbox: 'admin.example.com',
-  txt: 'txt.example.com'
 }
 ```
 
