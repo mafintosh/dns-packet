@@ -4,6 +4,7 @@ const types = require('./types')
 const rcodes = require('./rcodes')
 const opcodes = require('./opcodes')
 const classes = require('./classes')
+const optioncodes = require('./optioncodes')
 const ip = require('ip')
 
 const QUERY_FLAG = 0
@@ -666,17 +667,50 @@ raaaa.encodingLength = function () {
 
 const roption = exports.option = {}
 
+// '10.1.1.1/24' -> ['10.1.1.1', 24]
+function parseCIDR (str = '') {
+  const [ip, sn = '0'] = str.split('/')
+  return [ip || '0.0.0.0', parseInt(sn, 10)]
+}
+
 roption.encode = function (option, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(roption.encodingLength(option))
   if (!offset) offset = 0
   const oldOffset = offset
 
-  buf.writeUInt16BE(option.code, offset)
+  const code = optioncodes.toCode(option.code)
+  buf.writeUInt16BE(code, offset)
   offset += 2
-  buf.writeUInt16BE(option.data.length, offset)
-  offset += 2
-  option.data.copy(buf, offset)
-  offset += option.data.length
+  if (option.data) {
+    buf.writeUInt16BE(option.data.length, offset)
+    offset += 2
+    option.data.copy(buf, offset)
+    offset += option.data.length
+  } else {
+    switch (code) {
+      case 8: // ECS
+        let [oip, spl] = parseCIDR(option.ip)
+        if (option.sourcePrefixLength != null) {
+          spl = option.sourcePrefixLength
+        }
+        const fam = option.family || (ip.isV4Format(oip) ? 1 : 2)
+        const cidr = ip.cidr(`${oip}/${spl}`)
+        const ipBuf = ip.toBuffer(cidr)
+        const ipLen = Math.ceil(spl / 8)
+        buf.writeUInt16BE(ipLen + 4, offset)
+        offset += 2
+        buf.writeUInt16BE(fam, offset)
+        offset += 2
+        buf.writeUInt8(spl || 0, offset++)
+        buf.writeUInt8(option.scopePrefixLength || 0, offset++)
+
+        ipBuf.copy(buf, offset, 0, ipLen)
+        offset += ipLen
+        break
+      default:
+        throw new Error(`Unknown roption code: ${option.code}`)
+    }
+  }
 
   roption.encode.bytes = offset - oldOffset
   return buf
@@ -687,10 +721,23 @@ roption.encode.bytes = 0
 roption.decode = function (buf, offset) {
   if (!offset) offset = 0
   const option = {}
-
   option.code = buf.readUInt16BE(offset)
-  const len = buf.readUInt16BE(offset + 2)
-  option.data = buf.slice(offset + 4, offset + 4 + len)
+  offset += 2
+  const len = buf.readUInt16BE(offset)
+  offset += 2
+  option.data = buf.slice(offset, offset + len)
+  switch (option.code) {
+    case 8:
+      option.family = buf.readUInt16BE(offset)
+      offset += 2
+      option.sourcePrefixLength = buf.readUInt8(offset++)
+      option.scopePrefixLength = buf.readUInt8(offset++)
+      const padded = Buffer.alloc((option.family === 1) ? 4 : 16)
+      buf.copy(padded, 0, offset, offset + len - 4)
+      option.ip = ip.toString(padded)
+      break
+    // don't worry about default.  caller will use data if desired
+  }
 
   roption.decode.bytes = len + 4
   return option
@@ -699,7 +746,20 @@ roption.decode = function (buf, offset) {
 roption.decode.bytes = 0
 
 roption.encodingLength = function (option) {
-  return option.data.length + 4
+  if (option.data) {
+    return option.data.length + 4
+  }
+  const code = optioncodes.toCode(option.code)
+  switch (code) {
+    case 8: // ECS
+      let [, spl] = parseCIDR(option.ip)
+      if (option.sourcePrefixLength != null) {
+        spl = option.sourcePrefixLength
+      }
+      const len = Math.ceil(spl / 8)
+      return len + 8
+  }
+  throw new Error(`Unknown roption code: ${option.code}`)
 }
 
 const ropt = exports.opt = {}

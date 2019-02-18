@@ -352,9 +352,16 @@ tape('opt', function (t) {
   t.ok(compare(t, 0, additional2.flags), 'flags match')
   additional1.flags = packet.DNSSEC_OK
   additional1.extendedRcode = 0x80
-  // padding, see RFC 7830
-  additional1.options = [{
-    code: 12,
+  additional1.options = [ {
+    code: 'ECS', // edns-client-subnet, see RFC 7871
+    ip: 'fe80::/64'
+  }, {
+    code: 8, // still ECS
+    ip: '5.6.7.8',
+    sourcePrefixLength: 16,
+    scopePrefixLength: 16
+  }, {
+    code: 12, // padding, see RFC 7830
     data: Buffer.alloc(31)
   }]
   buf = packet.encode(val)
@@ -363,7 +370,13 @@ tape('opt', function (t) {
   t.ok(compare(t, 1 << 15, additional2.flags), 'DO bit set in flags')
   t.ok(compare(t, true, additional2.flag_do), 'DO bit set')
   t.ok(compare(t, additional1.extendedRcode, additional2.extendedRcode), 'extended rcode matches')
-  t.ok(compare(t, additional1.options, additional2.options), 'options match')
+  t.ok(compare(t, 8, additional2.options[0].code))
+  t.ok(compare(t, 'fe80::', additional2.options[0].ip))
+  t.ok(compare(t, 64, additional2.options[0].sourcePrefixLength))
+  t.ok(compare(t, '5.6.0.0', additional2.options[1].ip))
+  t.ok(compare(t, 16, additional2.options[1].sourcePrefixLength))
+  t.ok(compare(t, 16, additional2.options[1].scopePrefixLength))
+  t.ok(compare(t, additional1.options[2], additional2.options[2]), 'options match')
   t.end()
 })
 
