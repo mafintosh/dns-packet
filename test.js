@@ -354,7 +354,8 @@ tape('opt', function (t) {
   additional1.extendedRcode = 0x80
   additional1.options = [ {
     code: 'ECS', // edns-client-subnet, see RFC 7871
-    ip: 'fe80::/64'
+    ip: 'fe80::',
+    sourcePrefixLength: 64
   }, {
     code: 8, // still ECS
     ip: '5.6.7.8',

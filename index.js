@@ -667,12 +667,6 @@ raaaa.encodingLength = function () {
 
 const roption = exports.option = {}
 
-// '10.1.1.1/24' -> ['10.1.1.1', 24]
-function parseCIDR (str = '') {
-  const [ip, sn = '0'] = str.split('/')
-  return [ip || '0.0.0.0', parseInt(sn, 10)]
-}
-
 roption.encode = function (option, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(roption.encodingLength(option))
   if (!offset) offset = 0
@@ -689,23 +683,27 @@ roption.encode = function (option, buf, offset) {
   } else {
     switch (code) {
       case 8: // ECS
-        let [oip, spl] = parseCIDR(option.ip)
-        if (option.sourcePrefixLength != null) {
-          spl = option.sourcePrefixLength
-        }
-        const fam = option.family || (ip.isV4Format(oip) ? 1 : 2)
-        const cidr = ip.cidr(`${oip}/${spl}`)
-        const ipBuf = ip.toBuffer(cidr)
+        // note: do IP math before calling
+        const spl = option.sourcePrefixLength || 0
+        const fam = option.family || (ip.isV4Format(option.ip) ? 1 : 2)
+        const ipBuf = ip.toBuffer(option.ip)
         const ipLen = Math.ceil(spl / 8)
         buf.writeUInt16BE(ipLen + 4, offset)
         offset += 2
         buf.writeUInt16BE(fam, offset)
         offset += 2
-        buf.writeUInt8(spl || 0, offset++)
+        buf.writeUInt8(spl, offset++)
         buf.writeUInt8(option.scopePrefixLength || 0, offset++)
 
         ipBuf.copy(buf, offset, 0, ipLen)
         offset += ipLen
+        break
+      case 12: // Padding
+        const len = option.length || 0
+        buf.writeUInt16BE(len, offset)
+        offset += 2
+        buf.fill(0, offset, offset + len)
+        offset += len
         break
       default:
         throw new Error(`Unknown roption code: ${option.code}`)
@@ -722,6 +720,7 @@ roption.decode = function (buf, offset) {
   if (!offset) offset = 0
   const option = {}
   option.code = buf.readUInt16BE(offset)
+  option.type = optioncodes.toString(option.code)
   offset += 2
   const len = buf.readUInt16BE(offset)
   offset += 2
@@ -752,12 +751,10 @@ roption.encodingLength = function (option) {
   const code = optioncodes.toCode(option.code)
   switch (code) {
     case 8: // ECS
-      let [, spl] = parseCIDR(option.ip)
-      if (option.sourcePrefixLength != null) {
-        spl = option.sourcePrefixLength
-      }
-      const len = Math.ceil(spl / 8)
-      return len + 8
+      const spl = option.sourcePrefixLength || 0
+      return Math.ceil(spl / 8) + 8
+    case 12: // Padding
+      return option.length + 4
   }
   throw new Error(`Unknown roption code: ${option.code}`)
 }
