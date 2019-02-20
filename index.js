@@ -682,6 +682,8 @@ roption.encode = function (option, buf, offset) {
     offset += option.data.length
   } else {
     switch (code) {
+      // case 3: NSID.  No encode makes sense.
+      // case 5,6,7: Not implementable
       case 8: // ECS
         // note: do IP math before calling
         const spl = option.sourcePrefixLength || 0
@@ -698,12 +700,35 @@ roption.encode = function (option, buf, offset) {
         ipBuf.copy(buf, offset, 0, ipLen)
         offset += ipLen
         break
-      case 12: // Padding
+      // case 9: EXPIRE (experimental)
+      // case 10: COOKIE.  No encode makes sense.
+      case 11: // KEEP-ALIVE
+        if (option.timeout) {
+          buf.writeUInt16BE(2, offset)
+          offset += 2
+          buf.writeUInt16BE(option.timeout, offset)
+          offset += 2
+        } else {
+          buf.writeUInt16BE(0, offset)
+          offset += 2
+        }
+        break
+      case 12: // PADDING
         const len = option.length || 0
         buf.writeUInt16BE(len, offset)
         offset += 2
         buf.fill(0, offset, offset + len)
         offset += len
+        break
+      // case 13:  CHAIN.  Experimental.
+      case 14: // KEY-TAG
+        const tagsLen = option.tags.length * 2
+        buf.writeUInt16BE(tagsLen, offset)
+        offset += 2
+        for (const tag of option.tags) {
+          buf.writeUInt16BE(tag, offset)
+          offset += 2
+        }
         break
       default:
         throw new Error(`Unknown roption code: ${option.code}`)
@@ -726,7 +751,8 @@ roption.decode = function (buf, offset) {
   offset += 2
   option.data = buf.slice(offset, offset + len)
   switch (option.code) {
-    case 8:
+    // case 3: NSID.  No decode makes sense.
+    case 8: // ECS
       option.family = buf.readUInt16BE(offset)
       offset += 2
       option.sourcePrefixLength = buf.readUInt8(offset++)
@@ -735,6 +761,19 @@ roption.decode = function (buf, offset) {
       buf.copy(padded, 0, offset, offset + len - 4)
       option.ip = ip.toString(padded)
       break
+    // case 12: Padding.  No decode makes sense.
+    case 11: // KEEP-ALIVE
+      if (len > 0) {
+        option.timeout = buf.readUInt16BE(offset)
+        offset += 2
+      }
+      break
+    case 14:
+      option.tags = []
+      for (let i = 0; i < len; i += 2) {
+        option.tags.push(buf.readUInt16BE(offset))
+        offset += 2
+      }
     // don't worry about default.  caller will use data if desired
   }
 
@@ -753,8 +792,12 @@ roption.encodingLength = function (option) {
     case 8: // ECS
       const spl = option.sourcePrefixLength || 0
       return Math.ceil(spl / 8) + 8
-    case 12: // Padding
+    case 11: // KEEP-ALIVE
+      return (typeof option.timeout === 'number') ? 6 : 4
+    case 12: // PADDING
       return option.length + 4
+    case 14: // KEY-TAG
+      return 4 + (option.tags.length * 2)
   }
   throw new Error(`Unknown roption code: ${option.code}`)
 }

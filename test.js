@@ -358,12 +358,20 @@ tape('opt', function (t) {
     sourcePrefixLength: 64
   }, {
     code: 8, // still ECS
-    ip: '5.6.7.8',
+    ip: '5.6.0.0',
     sourcePrefixLength: 16,
     scopePrefixLength: 16
   }, {
-    code: 12, // padding, see RFC 7830
-    data: Buffer.alloc(31)
+    code: 'padding',
+    length: 31
+  }, {
+    code: 'KEEP-ALIVE'
+  }, {
+    code: 'KEEP-ALIVE',
+    timeout: 150
+  }, {
+    code: 'KEY-TAG',
+    tags: [1, 82, 987]
   }]
   buf = packet.encode(val)
   val2 = packet.decode(buf)
@@ -377,7 +385,10 @@ tape('opt', function (t) {
   t.ok(compare(t, '5.6.0.0', additional2.options[1].ip))
   t.ok(compare(t, 16, additional2.options[1].sourcePrefixLength))
   t.ok(compare(t, 16, additional2.options[1].scopePrefixLength))
-  t.ok(compare(t, additional1.options[2], additional2.options[2]), 'options match')
+  t.ok(compare(t, additional1.options[2].length, additional2.options[2].data.length))
+  t.ok(compare(t, additional1.options[3].timeout, undefined))
+  t.ok(compare(t, additional1.options[4].timeout, additional2.options[4].timeout))
+  t.ok(compare(t, additional1.options[5].tags, additional2.options[5].tags))
   t.end()
 })
 
