@@ -354,7 +354,7 @@ tape('opt', function (t) {
   additional1.flags = packet.DNSSEC_OK
   additional1.extendedRcode = 0x80
   additional1.options = [ {
-    code: 'ECS', // edns-client-subnet, see RFC 7871
+    code: 'CLIENT-SUBNET', // edns-client-subnet, see RFC 7871
     ip: 'fe80::',
     sourcePrefixLength: 64
   }, {
@@ -366,9 +366,9 @@ tape('opt', function (t) {
     code: 'padding',
     length: 31
   }, {
-    code: 'KEEP-ALIVE'
+    code: 'TCP-KEEPALIVE'
   }, {
-    code: 'KEEP-ALIVE',
+    code: 'tcp-keepalive',
     timeout: 150
   }, {
     code: 'KEY-TAG',
@@ -545,13 +545,13 @@ tape('optioncodes', function (t) {
     [5, 'DAU'],
     [6, 'DHU'],
     [7, 'N3U'],
-    [8, 'edns-client-subnet', 'ECS', 'CLIENT-SUBNET'],
+    [8, 'edns-client-subnet', 'CLIENT-SUBNET'],
     [9, 'EDNS EXPIRE', 'EXPIRE'],
     [10, 'COOKIE'],
-    [11, 'edns-tcp-keepalive', 'tcp-keepalive', 'KEEPALIVE', 'keep-alive'],
+    [11, 'edns-tcp-keepalive', 'tcp-keepalive'],
     [12, 'Padding'],
     [13, 'CHAIN'],
-    [14, 'edns-key-tag', 'key-tag', 'keytag'],
+    [14, 'edns-key-tag', 'key-tag'],
     [26946, 'DeviceID'],
     [65535, 'Reserved for future expansion'],
     [64000, 'Unassigned 64000'],
