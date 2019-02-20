@@ -4,6 +4,7 @@ const tape = require('tape')
 const packet = require('./')
 const rcodes = require('./rcodes')
 const opcodes = require('./opcodes')
+const optioncodes = require('./optioncodes')
 
 tape('unknown', function (t) {
   testEncoder(t, packet.unknown, Buffer.from('hello world'))
@@ -531,6 +532,40 @@ tape('unpack', function (t) {
   t.ok(compare(t, authority.type, 'NS'), 'streamDecoded RR type match')
   t.ok(compare(t, authority.name, 'bangj.com'), 'streamDecoded RR name match')
   t.ok(compare(t, authority.data, 'oj.bangj.com'), 'streamDecoded RR rdata match')
+  t.end()
+})
+
+tape('optioncodes', function (t) {
+  const opts = [
+    [0, 'Reserved 0'],
+    [1, 'LLQ'],
+    [2, 'UL'],
+    [3, 'NSID'],
+    [4, 'Reserved 4'],
+    [5, 'DAU'],
+    [6, 'DHU'],
+    [7, 'N3U'],
+    [8, 'edns-client-subnet'],
+    [9, 'EDNS EXPIRE', 'EXPIRE'],
+    [10, 'COOKIE'],
+    [11, 'edns-tcp-keepalive', 'KEEPALIVE', 'keep-alive'],
+    [12, 'Padding'],
+    [13, 'CHAIN'],
+    [14, 'edns-key-tag', 'key-tag', 'keytag'],
+    [26946, 'DeviceID'],
+    [65535, 'Reserved for future expansion'],
+    [64000, 'Unassigned 64000'],
+    [65002, 'Reserved for Local/Experimental Use 65002'],
+    [-1, 'Invalid -1']
+  ]
+  for (const [code, str, ...aliases] of opts) {
+    const s = optioncodes.toString(code)
+    t.ok(compare(t, s, str), `${code} => ${str}`)
+    t.ok(compare(t, optioncodes.toCode(s), code), `${str} => ${code}`)
+    for (const a of aliases) {
+      t.ok(compare(t, optioncodes.toCode(a), code), `${a} => ${code}`)
+    }
+  }
   t.end()
 })
 
