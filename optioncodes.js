@@ -45,11 +45,13 @@ exports.toCode = function (name) {
     case 'DHU': return 6
     case 'N3U': return 7
     case 'EDNS-CLIENT-SUBNET': return 8
+    case 'CLIENT-SUBNET': return 8 // drop "EDNS-"
     case 'ECS': return 8 // This is what people usually talk about
-    case 'EXPIRE': return 9
     case 'EDNS EXPIRE': return 9
+    case 'EXPIRE': return 9 // drop "EDNS "
     case 'COOKIE': return 10
     case 'EDNS-TCP-KEEPALIVE': return 11
+    case 'TCP-KEEPALIVE': return 11 // drop "EDNS-"
     case 'KEEPALIVE': return 11 // colloquialism
     case 'KEEP-ALIVE': return 11 // colloquialism
     case 'PADDING': return 12
