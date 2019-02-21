@@ -1,3 +1,7 @@
+# Version 5.2.0 - 2019-02-21
+
+- Feature: Added support for de/encoding certain OPT options.
+
 # Version 5.1.0 - 2019-01-22
 
 - Feature: Added support for the RP record type.
