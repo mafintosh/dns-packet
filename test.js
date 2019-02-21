@@ -4,6 +4,7 @@ const tape = require('tape')
 const packet = require('./')
 const rcodes = require('./rcodes')
 const opcodes = require('./opcodes')
+const optioncodes = require('./optioncodes')
 
 tape('unknown', function (t) {
   testEncoder(t, packet.unknown, Buffer.from('hello world'))
@@ -352,10 +353,26 @@ tape('opt', function (t) {
   t.ok(compare(t, 0, additional2.flags), 'flags match')
   additional1.flags = packet.DNSSEC_OK
   additional1.extendedRcode = 0x80
-  // padding, see RFC 7830
-  additional1.options = [{
-    code: 12,
-    data: Buffer.alloc(31)
+  additional1.options = [ {
+    code: 'CLIENT_SUBNET', // edns-client-subnet, see RFC 7871
+    ip: 'fe80::',
+    sourcePrefixLength: 64
+  }, {
+    code: 8, // still ECS
+    ip: '5.6.0.0',
+    sourcePrefixLength: 16,
+    scopePrefixLength: 16
+  }, {
+    code: 'padding',
+    length: 31
+  }, {
+    code: 'TCP_KEEPALIVE'
+  }, {
+    code: 'tcp_keepalive',
+    timeout: 150
+  }, {
+    code: 'KEY_TAG',
+    tags: [1, 82, 987]
   }]
   buf = packet.encode(val)
   val2 = packet.decode(buf)
@@ -363,7 +380,16 @@ tape('opt', function (t) {
   t.ok(compare(t, 1 << 15, additional2.flags), 'DO bit set in flags')
   t.ok(compare(t, true, additional2.flag_do), 'DO bit set')
   t.ok(compare(t, additional1.extendedRcode, additional2.extendedRcode), 'extended rcode matches')
-  t.ok(compare(t, additional1.options, additional2.options), 'options match')
+  t.ok(compare(t, 8, additional2.options[0].code))
+  t.ok(compare(t, 'fe80::', additional2.options[0].ip))
+  t.ok(compare(t, 64, additional2.options[0].sourcePrefixLength))
+  t.ok(compare(t, '5.6.0.0', additional2.options[1].ip))
+  t.ok(compare(t, 16, additional2.options[1].sourcePrefixLength))
+  t.ok(compare(t, 16, additional2.options[1].scopePrefixLength))
+  t.ok(compare(t, additional1.options[2].length, additional2.options[2].data.length))
+  t.ok(compare(t, additional1.options[3].timeout, undefined))
+  t.ok(compare(t, additional1.options[4].timeout, additional2.options[4].timeout))
+  t.ok(compare(t, additional1.options[5].tags, additional2.options[5].tags))
   t.end()
 })
 
@@ -506,6 +532,38 @@ tape('unpack', function (t) {
   t.ok(compare(t, authority.type, 'NS'), 'streamDecoded RR type match')
   t.ok(compare(t, authority.name, 'bangj.com'), 'streamDecoded RR name match')
   t.ok(compare(t, authority.data, 'oj.bangj.com'), 'streamDecoded RR rdata match')
+  t.end()
+})
+
+tape('optioncodes', function (t) {
+  const opts = [
+    [0, 'OPTION_0'],
+    [1, 'LLQ'],
+    [2, 'UL'],
+    [3, 'NSID'],
+    [4, 'OPTION_4'],
+    [5, 'DAU'],
+    [6, 'DHU'],
+    [7, 'N3U'],
+    [8, 'CLIENT_SUBNET'],
+    [9, 'EXPIRE'],
+    [10, 'COOKIE'],
+    [11, 'TCP_KEEPALIVE'],
+    [12, 'PADDING'],
+    [13, 'CHAIN'],
+    [14, 'KEY_TAG'],
+    [26946, 'DEVICEID'],
+    [65535, 'OPTION_65535'],
+    [64000, 'OPTION_64000'],
+    [65002, 'OPTION_65002'],
+    [-1, null]
+  ]
+  for (const [code, str] of opts) {
+    const s = optioncodes.toString(code)
+    t.ok(compare(t, s, str), `${code} => ${str}`)
+    t.ok(compare(t, optioncodes.toCode(s), code), `${str} => ${code}`)
+  }
+  t.ok(compare(t, optioncodes.toCode('INVALIDINVALID'), -1))
   t.end()
 })
 

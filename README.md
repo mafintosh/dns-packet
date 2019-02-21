@@ -258,8 +258,25 @@ And an answer, additional, or authority looks like this
   udpPayloadSize: 4096,
   flags: packet.DNSSEC_OK,
   options: [{
+    // pass in any code/data for generic EDNS0 options
     code: 12,
     data: Buffer.alloc(31)
+  }, {
+    // Several EDNS0 options have explicit support
+    code: 'padding',
+    length: 31
+  }, {
+    code: 'CLIENT-SUBNET',
+    family: 2, // 1 for IPv4, 2 for IPv6
+    sourcePrefixLength: 64, // used to truncate IP address
+    scopePrefixLength: 0,
+    ip: 'fe80::'
+  }, {
+    code: 'tcp-keepalive',
+    timeout: 150 // increments of 100ms.  This means 15s.
+  }, {
+    code: 'key-tag',
+    tags: [1, 2, 3]
   }]
 }
 ```
