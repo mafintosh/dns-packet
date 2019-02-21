@@ -354,7 +354,7 @@ tape('opt', function (t) {
   additional1.flags = packet.DNSSEC_OK
   additional1.extendedRcode = 0x80
   additional1.options = [ {
-    code: 'CLIENT-SUBNET', // edns-client-subnet, see RFC 7871
+    code: 'CLIENT_SUBNET', // edns-client-subnet, see RFC 7871
     ip: 'fe80::',
     sourcePrefixLength: 64
   }, {
@@ -366,12 +366,12 @@ tape('opt', function (t) {
     code: 'padding',
     length: 31
   }, {
-    code: 'TCP-KEEPALIVE'
+    code: 'TCP_KEEPALIVE'
   }, {
-    code: 'tcp-keepalive',
+    code: 'tcp_keepalive',
     timeout: 150
   }, {
-    code: 'KEY-TAG',
+    code: 'KEY_TAG',
     tags: [1, 82, 987]
   }]
   buf = packet.encode(val)
@@ -537,35 +537,33 @@ tape('unpack', function (t) {
 
 tape('optioncodes', function (t) {
   const opts = [
-    [0, 'Reserved 0'],
+    [0, 'OPTION_0'],
     [1, 'LLQ'],
     [2, 'UL'],
     [3, 'NSID'],
-    [4, 'Reserved 4'],
+    [4, 'OPTION_4'],
     [5, 'DAU'],
     [6, 'DHU'],
     [7, 'N3U'],
-    [8, 'edns-client-subnet', 'CLIENT-SUBNET'],
-    [9, 'EDNS EXPIRE', 'EXPIRE'],
+    [8, 'CLIENT_SUBNET'],
+    [9, 'EXPIRE'],
     [10, 'COOKIE'],
-    [11, 'edns-tcp-keepalive', 'tcp-keepalive'],
-    [12, 'Padding'],
+    [11, 'TCP_KEEPALIVE'],
+    [12, 'PADDING'],
     [13, 'CHAIN'],
-    [14, 'edns-key-tag', 'key-tag'],
-    [26946, 'DeviceID'],
-    [65535, 'Reserved for future expansion'],
-    [64000, 'Unassigned 64000'],
-    [65002, 'Reserved for Local/Experimental Use 65002'],
-    [-1, 'Invalid -1']
+    [14, 'KEY_TAG'],
+    [26946, 'DEVICEID'],
+    [65535, 'OPTION_65535'],
+    [64000, 'OPTION_64000'],
+    [65002, 'OPTION_65002'],
+    [-1, null]
   ]
-  for (const [code, str, ...aliases] of opts) {
+  for (const [code, str] of opts) {
     const s = optioncodes.toString(code)
     t.ok(compare(t, s, str), `${code} => ${str}`)
     t.ok(compare(t, optioncodes.toCode(s), code), `${str} => ${code}`)
-    for (const a of aliases) {
-      t.ok(compare(t, optioncodes.toCode(a), code), `${a} => ${code}`)
-    }
   }
+  t.ok(compare(t, optioncodes.toCode('INVALIDINVALID'), -1))
   t.end()
 })
 
