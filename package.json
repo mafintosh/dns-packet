@@ -37,6 +37,7 @@
     "types.js",
     "rcodes.js",
     "opcodes.js",
-    "classes.js"
+    "classes.js",
+    "optioncodes.js"
   ]
 }

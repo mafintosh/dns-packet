@@ -262,24 +262,26 @@ And an answer, additional, or authority looks like this
     code: 12,
     data: Buffer.alloc(31)
   }, {
-    // Several EDNS0 options have explicit support
-    code: 'padding',
-    length: 31
+    // Several EDNS0 options have enhanced support
+    code: 'PADDING',
+    length: 31,
   }, {
-    code: 'CLIENT-SUBNET',
+    code: 'CLIENT_SUBNET',
     family: 2, // 1 for IPv4, 2 for IPv6
     sourcePrefixLength: 64, // used to truncate IP address
     scopePrefixLength: 0,
-    ip: 'fe80::'
+    ip: 'fe80::',
   }, {
-    code: 'tcp-keepalive',
+    code: 'TCP_KEEPALIVE',
     timeout: 150 // increments of 100ms.  This means 15s.
   }, {
-    code: 'key-tag',
-    tags: [1, 2, 3]
+    code: 'KEY_TAG',
+    tags: [1, 2, 3],
   }]
 }
 ```
+
+The options `PADDING`, `CLIENT_SUBNET`, `TCP_KEEPALIVE` and `KEY_TAG` support enhanced de/encoding. See [optionscodes.js](https://github.com/mafintosh/dns-packet/blob/master/optioncodes.js) for all supported option codes. If the `data` property is present on a option, it takes precedence. On decoding, `data` will always be defined.
 
 #### `PTR`
 
