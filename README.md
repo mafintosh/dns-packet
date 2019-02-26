@@ -251,6 +251,8 @@ And an answer, additional, or authority looks like this
 
 #### `OPT`
 
+[EDNS0](https://tools.ietf.org/html/rfc6891) options.
+
 ``` js
 {
   type: 'OPT',
