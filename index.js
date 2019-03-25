@@ -1316,7 +1316,7 @@ answer.encode = function (a, buf, offset) {
     if (a.name !== '.') {
       throw new Error('OPT name must be root.')
     }
-    buf.writeUInt16BE(a.updPayloadSize || 4096, offset + 2)
+    buf.writeUInt16BE(a.udpPayloadSize || 4096, offset + 2)
     buf.writeUInt8(a.extendedRcode || 0, offset + 4)
     buf.writeUInt8(a.ednsVersion || 0, offset + 5)
     buf.writeUInt16BE(a.flags || 0, offset + 6)

@@ -340,7 +340,7 @@ tape('opt', function (t) {
     additionals: [{
       type: 'OPT',
       name: '.',
-      udpPayloadSize: 4096
+      udpPayloadSize: 1024
     }]
   }
   testEncoder(t, packet, val)
