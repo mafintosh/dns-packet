@@ -77,7 +77,7 @@ name.decode = function (buf, offset) {
 name.decode.bytes = 0
 
 name.encodingLength = function (n) {
-  if (n === '.') return 1
+  if (n === '.' || n === '') return 1
   return Buffer.byteLength(n) + 2
 }
 
