@@ -853,10 +853,7 @@ rdnskey.encode = function (key, buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  const keydata = key.key
-  if (!Buffer.isBuffer(keydata)) {
-    throw new Error('Key must be a Buffer')
-  }
+  const keydata = Buffer.from(key.key, 'base64')
 
   offset += 2 // Leave space for length
   buf.writeUInt16BE(key.flags, offset)
@@ -899,7 +896,7 @@ rdnskey.decode = function (buf, offset) {
 rdnskey.decode.bytes = 0
 
 rdnskey.encodingLength = function (key) {
-  return 6 + Buffer.byteLength(key.key)
+  return 6 + Buffer.byteLength(key.key, 'base64')
 }
 
 const rrrsig = exports.rrsig = {}
@@ -909,10 +906,7 @@ rrrsig.encode = function (sig, buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  const signature = sig.signature
-  if (!Buffer.isBuffer(signature)) {
-    throw new Error('Signature must be a Buffer')
-  }
+  const signature = Buffer.from(sig.signature, 'base64')
 
   offset += 2 // Leave space for length
   buf.writeUInt16BE(types.toType(sig.typeCovered), offset)
@@ -975,7 +969,7 @@ rrrsig.decode.bytes = 0
 rrrsig.encodingLength = function (sig) {
   return 20 +
     name.encodingLength(sig.signersName) +
-    Buffer.byteLength(sig.signature)
+    Buffer.byteLength(sig.signature, 'base64')
 }
 
 const rrp = exports.rp = {}
@@ -1226,10 +1220,7 @@ rds.encode = function (digest, buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  const digestdata = digest.digest
-  if (!Buffer.isBuffer(digestdata)) {
-    throw new Error('Digest must be a Buffer')
-  }
+  const digestdata = Buffer.from(digest.digest, 'hex')
 
   offset += 2 // Leave space for length
   buf.writeUInt16BE(digest.keyTag, offset)
@@ -1270,7 +1261,7 @@ rds.decode = function (buf, offset) {
 rds.decode.bytes = 0
 
 rds.encodingLength = function (digest) {
-  return 6 + Buffer.byteLength(digest.digest)
+  return 6 + Buffer.byteLength(digest.digest, 'hex')
 }
 
 const renc = exports.record = function (type) {
