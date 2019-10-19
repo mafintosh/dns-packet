@@ -26,7 +26,7 @@ const context = tls.createSecureContext({
 
 const options = {
   port: 853,
-  host: 'getdnsapi.net',
+  host: '1.1.1.1',
   secureContext: context
 }
 
