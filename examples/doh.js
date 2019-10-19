@@ -31,7 +31,7 @@ const options = {
   path: '/dns-query',
   method: 'POST',
   headers: {
-    'Content-Type': 'application/dns-message',
+    'Content-Type': 'application/dns-message'
   }
 }
 
