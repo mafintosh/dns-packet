@@ -1417,7 +1417,9 @@ question.decode = function (buf, offset) {
   q.type = types.toString(buf.readUInt16BE(offset))
   offset += 2
 
-  q.class = classes.toString(buf.readUInt16BE(offset))
+  const klass = buf.readUInt16BE(offset)
+  q.class = classes.toString(klass & NOT_FLUSH_MASK)
+  q.flush = !!(klass & FLUSH_MASK)
   offset += 2
 
   const qu = !!(q.class & QU_MASK)
