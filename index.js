@@ -1440,6 +1440,7 @@ exports.RECURSION_AVAILABLE = 1 << 7
 exports.AUTHENTIC_DATA = 1 << 5
 exports.CHECKING_DISABLED = 1 << 4
 exports.DNSSEC_OK = 1 << 15
+exports.NXDOMAIN = 0x03
 
 exports.encode = function (result, buf, offset) {
   if (!buf) buf = Buffer.allocUnsafe(exports.encodingLength(result))
