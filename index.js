@@ -74,7 +74,8 @@ name.decode = function (buf, offset) {
 name.decode.bytes = 0
 
 name.encodingLength = function (n) {
-  return Buffer.byteLength(n) + 2
+  if (n === '.') return 1
+  return Buffer.byteLength(n.replace(/^\.|\.$/gm, '')) + 2
 }
 
 var string = {}
