@@ -77,7 +77,7 @@ name.decode = function (buf, offset) {
 name.decode.bytes = 0
 
 name.encodingLength = function (n) {
-  if (n === '.') return 1
+  if (n === '.' || n === '..') return 1
   return Buffer.byteLength(n.replace(/^\.|\.$/gm, '')) + 2
 }
 
@@ -1442,7 +1442,9 @@ exports.CHECKING_DISABLED = 1 << 4
 exports.DNSSEC_OK = 1 << 15
 
 exports.encode = function (result, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(exports.encodingLength(result))
+  const allocing = !buf
+
+  if (allocing) buf = Buffer.allocUnsafe(exports.encodingLength(result))
   if (!offset) offset = 0
 
   const oldOffset = offset
@@ -1461,6 +1463,11 @@ exports.encode = function (result, buf, offset) {
   offset = encodeList(result.additionals, answer, buf, offset)
 
   exports.encode.bytes = offset - oldOffset
+
+  // just a quick sanity check
+  if (allocing && exports.encode.bytes !== buf.length) {
+    return buf.slice(0, exports.encode.bytes)
+  }
 
   return buf
 }
