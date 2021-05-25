@@ -9,3 +9,6 @@ script:
 - npm run coverage
 after_success:
 - npx nyc report --reporter=text-lcov | npx coveralls
+branches:
+  only:
+  - master
