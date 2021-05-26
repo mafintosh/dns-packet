@@ -17,7 +17,7 @@ const NOT_QU_MASK = ~QU_MASK
 const name = exports.txt = exports.name = {}
 
 name.encode = function (str, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(name.encodingLength(str))
+  if (!buf) buf = Buffer.alloc(name.encodingLength(str))
   if (!offset) offset = 0
   const oldOffset = offset
 
@@ -84,7 +84,7 @@ name.encodingLength = function (n) {
 const string = {}
 
 string.encode = function (s, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(string.encodingLength(s))
+  if (!buf) buf = Buffer.alloc(string.encodingLength(s))
   if (!offset) offset = 0
 
   const len = buf.write(s, offset + 1)
@@ -166,7 +166,7 @@ header.encodingLength = function () {
 const runknown = exports.unknown = {}
 
 runknown.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(runknown.encodingLength(data))
+  if (!buf) buf = Buffer.alloc(runknown.encodingLength(data))
   if (!offset) offset = 0
 
   buf.writeUInt16BE(data.length, offset)
@@ -196,7 +196,7 @@ runknown.encodingLength = function (data) {
 const rns = exports.ns = {}
 
 rns.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rns.encodingLength(data))
+  if (!buf) buf = Buffer.alloc(rns.encodingLength(data))
   if (!offset) offset = 0
 
   name.encode(data, buf, offset + 2)
@@ -226,7 +226,7 @@ rns.encodingLength = function (data) {
 const rsoa = exports.soa = {}
 
 rsoa.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rsoa.encodingLength(data))
+  if (!buf) buf = Buffer.alloc(rsoa.encodingLength(data))
   if (!offset) offset = 0
 
   const oldOffset = offset
@@ -298,7 +298,7 @@ rtxt.encode = function (data, buf, offset) {
     }
   }
 
-  if (!buf) buf = Buffer.allocUnsafe(rtxt.encodingLength(data))
+  if (!buf) buf = Buffer.alloc(rtxt.encodingLength(data))
   if (!offset) offset = 0
 
   const oldOffset = offset
@@ -357,11 +357,11 @@ rtxt.encodingLength = function (data) {
 const rnull = exports.null = {}
 
 rnull.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rnull.encodingLength(data))
+  if (!buf) buf = Buffer.alloc(rnull.encodingLength(data))
   if (!offset) offset = 0
 
   if (typeof data === 'string') data = Buffer.from(data)
-  if (!data) data = Buffer.allocUnsafe(0)
+  if (!data) data = Buffer.alloc(0)
 
   const oldOffset = offset
   offset += 2
@@ -401,7 +401,7 @@ rnull.encodingLength = function (data) {
 const rhinfo = exports.hinfo = {}
 
 rhinfo.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rhinfo.encodingLength(data))
+  if (!buf) buf = Buffer.alloc(rhinfo.encodingLength(data))
   if (!offset) offset = 0
 
   const oldOffset = offset
@@ -443,7 +443,7 @@ const rcname = exports.cname = rptr
 const rdname = exports.dname = rptr
 
 rptr.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rptr.encodingLength(data))
+  if (!buf) buf = Buffer.alloc(rptr.encodingLength(data))
   if (!offset) offset = 0
 
   name.encode(data, buf, offset + 2)
@@ -471,7 +471,7 @@ rptr.encodingLength = function (data) {
 const rsrv = exports.srv = {}
 
 rsrv.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rsrv.encodingLength(data))
+  if (!buf) buf = Buffer.alloc(rsrv.encodingLength(data))
   if (!offset) offset = 0
 
   buf.writeUInt16BE(data.priority || 0, offset + 2)
@@ -516,7 +516,7 @@ rcaa.ISSUER_CRITICAL = 1 << 7
 rcaa.encode = function (data, buf, offset) {
   const len = rcaa.encodingLength(data)
 
-  if (!buf) buf = Buffer.allocUnsafe(rcaa.encodingLength(data))
+  if (!buf) buf = Buffer.alloc(rcaa.encodingLength(data))
   if (!offset) offset = 0
 
   if (data.issuerCritical) {
@@ -568,7 +568,7 @@ rcaa.encodingLength = function (data) {
 const rmx = exports.mx = {}
 
 rmx.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rmx.encodingLength(data))
+  if (!buf) buf = Buffer.alloc(rmx.encodingLength(data))
   if (!offset) offset = 0
 
   const oldOffset = offset
@@ -608,7 +608,7 @@ rmx.encodingLength = function (data) {
 const ra = exports.a = {}
 
 ra.encode = function (host, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(ra.encodingLength(host))
+  if (!buf) buf = Buffer.alloc(ra.encodingLength(host))
   if (!offset) offset = 0
 
   buf.writeUInt16BE(4, offset)
@@ -638,7 +638,7 @@ ra.encodingLength = function () {
 const raaaa = exports.aaaa = {}
 
 raaaa.encode = function (host, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(raaaa.encodingLength(host))
+  if (!buf) buf = Buffer.alloc(raaaa.encodingLength(host))
   if (!offset) offset = 0
 
   buf.writeUInt16BE(16, offset)
@@ -668,7 +668,7 @@ raaaa.encodingLength = function () {
 const roption = exports.option = {}
 
 roption.encode = function (option, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(roption.encodingLength(option))
+  if (!buf) buf = Buffer.alloc(roption.encodingLength(option))
   if (!offset) offset = 0
   const oldOffset = offset
 
@@ -805,7 +805,7 @@ roption.encodingLength = function (option) {
 const ropt = exports.opt = {}
 
 ropt.encode = function (options, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(ropt.encodingLength(options))
+  if (!buf) buf = Buffer.alloc(ropt.encodingLength(options))
   if (!offset) offset = 0
   const oldOffset = offset
 
@@ -849,7 +849,7 @@ rdnskey.ZONE_KEY = 0x80
 rdnskey.SECURE_ENTRYPOINT = 0x8000
 
 rdnskey.encode = function (key, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rdnskey.encodingLength(key))
+  if (!buf) buf = Buffer.alloc(rdnskey.encodingLength(key))
   if (!offset) offset = 0
   const oldOffset = offset
 
@@ -905,7 +905,7 @@ rdnskey.encodingLength = function (key) {
 const rrrsig = exports.rrsig = {}
 
 rrrsig.encode = function (sig, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rrrsig.encodingLength(sig))
+  if (!buf) buf = Buffer.alloc(rrrsig.encodingLength(sig))
   if (!offset) offset = 0
   const oldOffset = offset
 
@@ -981,7 +981,7 @@ rrrsig.encodingLength = function (sig) {
 const rrp = exports.rp = {}
 
 rrp.encode = function (data, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rrp.encodingLength(data))
+  if (!buf) buf = Buffer.alloc(rrp.encodingLength(data))
   if (!offset) offset = 0
   const oldOffset = offset
 
@@ -1020,7 +1020,7 @@ rrp.encodingLength = function (data) {
 const typebitmap = {}
 
 typebitmap.encode = function (typelist, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(typebitmap.encodingLength(typelist))
+  if (!buf) buf = Buffer.alloc(typebitmap.encodingLength(typelist))
   if (!offset) offset = 0
   const oldOffset = offset
 
@@ -1099,7 +1099,7 @@ typebitmap.encodingLength = function (typelist) {
 const rnsec = exports.nsec = {}
 
 rnsec.encode = function (record, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rnsec.encodingLength(record))
+  if (!buf) buf = Buffer.alloc(rnsec.encodingLength(record))
   if (!offset) offset = 0
   const oldOffset = offset
 
@@ -1143,7 +1143,7 @@ rnsec.encodingLength = function (record) {
 const rnsec3 = exports.nsec3 = {}
 
 rnsec3.encode = function (record, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rnsec3.encodingLength(record))
+  if (!buf) buf = Buffer.alloc(rnsec3.encodingLength(record))
   if (!offset) offset = 0
   const oldOffset = offset
 
@@ -1222,7 +1222,7 @@ rnsec3.encodingLength = function (record) {
 const rds = exports.ds = {}
 
 rds.encode = function (digest, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(rds.encodingLength(digest))
+  if (!buf) buf = Buffer.alloc(rds.encodingLength(digest))
   if (!offset) offset = 0
   const oldOffset = offset
 
@@ -1302,7 +1302,7 @@ const renc = exports.record = function (type) {
 const answer = exports.answer = {}
 
 answer.encode = function (a, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(answer.encodingLength(a))
+  if (!buf) buf = Buffer.alloc(answer.encodingLength(a))
   if (!offset) offset = 0
 
   const oldOffset = offset
@@ -1385,7 +1385,7 @@ answer.encodingLength = function (a) {
 const question = exports.question = {}
 
 question.encode = function (q, buf, offset) {
-  if (!buf) buf = Buffer.allocUnsafe(question.encodingLength(q))
+  if (!buf) buf = Buffer.alloc(question.encodingLength(q))
   if (!offset) offset = 0
 
   const oldOffset = offset
@@ -1444,7 +1444,7 @@ exports.DNSSEC_OK = 1 << 15
 exports.encode = function (result, buf, offset) {
   const allocing = !buf
 
-  if (allocing) buf = Buffer.allocUnsafe(exports.encodingLength(result))
+  if (allocing) buf = Buffer.alloc(exports.encodingLength(result))
   if (!offset) offset = 0
 
   const oldOffset = offset
@@ -1503,7 +1503,7 @@ exports.encodingLength = function (result) {
 
 exports.streamEncode = function (result) {
   const buf = exports.encode(result)
-  const sbuf = Buffer.allocUnsafe(2)
+  const sbuf = Buffer.alloc(2)
   sbuf.writeUInt16BE(buf.byteLength)
   const combine = Buffer.concat([sbuf, buf])
   exports.streamEncode.bytes = combine.byteLength
