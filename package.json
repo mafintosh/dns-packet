@@ -17,7 +17,7 @@
     "coverage": "nyc -r html npm test"
   },
   "dependencies": {
-    "ip": "^1.1.5"
+    "@leichtgewicht/ip-codec": "^2.0.1"
   },
   "devDependencies": {
     "eslint": "^5.14.1",
