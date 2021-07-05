@@ -5,7 +5,7 @@ const rcodes = require('./rcodes')
 const opcodes = require('./opcodes')
 const classes = require('./classes')
 const optioncodes = require('./optioncodes')
-const ip = require('ip')
+const ip = require('@leichtgewicht/ip-codec')
 
 const QUERY_FLAG = 0
 const RESPONSE_FLAG = 1 << 15
@@ -613,7 +613,7 @@ ra.encode = function (host, buf, offset) {
 
   buf.writeUInt16BE(4, offset)
   offset += 2
-  ip.toBuffer(host, buf, offset)
+  ip.v4.encode(host, buf, offset)
   ra.encode.bytes = 6
   return buf
 }
@@ -624,7 +624,7 @@ ra.decode = function (buf, offset) {
   if (!offset) offset = 0
 
   offset += 2
-  const host = ip.toString(buf, offset, 4)
+  const host = ip.v4.decode(buf, offset)
   ra.decode.bytes = 6
   return host
 }
@@ -643,7 +643,7 @@ raaaa.encode = function (host, buf, offset) {
 
   buf.writeUInt16BE(16, offset)
   offset += 2
-  ip.toBuffer(host, buf, offset)
+  ip.v6.encode(host, buf, offset)
   raaaa.encode.bytes = 18
   return buf
 }
@@ -654,7 +654,7 @@ raaaa.decode = function (buf, offset) {
   if (!offset) offset = 0
 
   offset += 2
-  const host = ip.toString(buf, offset, 16)
+  const host = ip.v6.decode(buf, offset)
   raaaa.decode.bytes = 18
   return host
 }
@@ -687,8 +687,8 @@ roption.encode = function (option, buf, offset) {
       case 8: // ECS
         // note: do IP math before calling
         const spl = option.sourcePrefixLength || 0
-        const fam = option.family || (ip.isV4Format(option.ip) ? 1 : 2)
-        const ipBuf = ip.toBuffer(option.ip)
+        const fam = option.family || ip.familyOf(option.ip)
+        const ipBuf = ip.encode(option.ip, Buffer.alloc)
         const ipLen = Math.ceil(spl / 8)
         buf.writeUInt16BE(ipLen + 4, offset)
         offset += 2
@@ -759,7 +759,7 @@ roption.decode = function (buf, offset) {
       option.scopePrefixLength = buf.readUInt8(offset++)
       const padded = Buffer.alloc((option.family === 1) ? 4 : 16)
       buf.copy(padded, 0, offset, offset + len - 4)
-      option.ip = ip.toString(padded)
+      option.ip = ip.decode(padded)
       break
     // case 12: Padding.  No decode makes sense.
     case 11: // KEEP-ALIVE
