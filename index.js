@@ -701,8 +701,8 @@ roption.encode = function (option, buf, offset) {
         ipBuf.copy(buf, offset, 0, ipLen)
         offset += ipLen
         break
-      // case 9: EXPIRE (experimental)
-      // case 10: COOKIE.  No encode makes sense.
+        // case 9: EXPIRE (experimental)
+        // case 10: COOKIE.  No encode makes sense.
       case 11: // KEEP-ALIVE
         if (option.timeout) {
           buf.writeUInt16BE(2, offset)
@@ -721,7 +721,7 @@ roption.encode = function (option, buf, offset) {
         buf.fill(0, offset, offset + len)
         offset += len
         break
-      // case 13:  CHAIN.  Experimental.
+        // case 13:  CHAIN.  Experimental.
       case 14: // KEY-TAG
         const tagsLen = option.tags.length * 2
         buf.writeUInt16BE(tagsLen, offset)
@@ -762,7 +762,7 @@ roption.decode = function (buf, offset) {
       buf.copy(padded, 0, offset, offset + len - 4)
       option.ip = ip.decode(padded)
       break
-    // case 12: Padding.  No decode makes sense.
+      // case 12: Padding.  No decode makes sense.
     case 11: // KEEP-ALIVE
       if (len > 0) {
         option.timeout = buf.readUInt16BE(offset)
@@ -775,7 +775,7 @@ roption.decode = function (buf, offset) {
         option.tags.push(buf.readUInt16BE(offset))
         offset += 2
       }
-    // don't worry about default.  caller will use data if desired
+      // don't worry about default.  caller will use data if desired
   }
 
   roption.decode.bytes = len + 4
@@ -1276,26 +1276,46 @@ rds.encodingLength = function (digest) {
 
 const renc = exports.record = function (type) {
   switch (type.toUpperCase()) {
-    case 'A': return ra
-    case 'PTR': return rptr
-    case 'CNAME': return rcname
-    case 'DNAME': return rdname
-    case 'TXT': return rtxt
-    case 'NULL': return rnull
-    case 'AAAA': return raaaa
-    case 'SRV': return rsrv
-    case 'HINFO': return rhinfo
-    case 'CAA': return rcaa
-    case 'NS': return rns
-    case 'SOA': return rsoa
-    case 'MX': return rmx
-    case 'OPT': return ropt
-    case 'DNSKEY': return rdnskey
-    case 'RRSIG': return rrrsig
-    case 'RP': return rrp
-    case 'NSEC': return rnsec
-    case 'NSEC3': return rnsec3
-    case 'DS': return rds
+    case 'A':
+      return ra
+    case 'PTR':
+      return rptr
+    case 'CNAME':
+      return rcname
+    case 'DNAME':
+      return rdname
+    case 'TXT':
+      return rtxt
+    case 'NULL':
+      return rnull
+    case 'AAAA':
+      return raaaa
+    case 'SRV':
+      return rsrv
+    case 'HINFO':
+      return rhinfo
+    case 'CAA':
+      return rcaa
+    case 'NS':
+      return rns
+    case 'SOA':
+      return rsoa
+    case 'MX':
+      return rmx
+    case 'OPT':
+      return ropt
+    case 'DNSKEY':
+      return rdnskey
+    case 'RRSIG':
+      return rrrsig
+    case 'RP':
+      return rrp
+    case 'NSEC':
+      return rnsec
+    case 'NSEC3':
+      return rnsec3
+    case 'DS':
+      return rds
   }
   return runknown
 }
@@ -1384,7 +1404,6 @@ answer.encodingLength = function (a) {
 }
 
 const question = exports.question = {}
-
 question.encode = function (q, buf, offset) {
   if (!buf) buf = Buffer.alloc(question.encodingLength(q))
   if (!offset) offset = 0
@@ -1396,8 +1415,12 @@ question.encode = function (q, buf, offset) {
 
   buf.writeUInt16BE(types.toType(q.type), offset)
   offset += 2
+  if (q.QU === undefined || q.QU !== true) {
+    buf.writeUInt16BE(classes.toClass(q.class === undefined ? 'IN' : q.class), offset)
+  } else {
+    buf.writeUInt16BE(classes.toClass(q.class === undefined ? 'IN' : q.class) + QU_MASK, offset)
+  }
 
-  buf.writeUInt16BE(classes.toClass(q.class === undefined ? 'IN' : q.class), offset)
   offset += 2
 
   question.encode.bytes = offset - oldOffset
@@ -1418,7 +1441,14 @@ question.decode = function (buf, offset) {
   q.type = types.toString(buf.readUInt16BE(offset))
   offset += 2
 
-  q.class = classes.toString(buf.readUInt16BE(offset))
+  const classValue = buf.readUInt16BE(offset)
+  if (classValue >= QU_MASK) {
+    q.QU = true
+    q.class = classes.toString(classValue - QU_MASK)
+  } else {
+    q.class = classes.toString(classValue)
+  }
+
   offset += 2
 
   const qu = !!(q.class & QU_MASK)
