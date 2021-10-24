@@ -1294,6 +1294,65 @@ rds.encodingLength = function (digest) {
   return 6 + Buffer.byteLength(digest.digest)
 }
 
+const rsshfp = exports.sshfp = {}
+
+rsshfp.getFingerprintLengthForHashType = function getFingerprintLengthForHashType (hashType) {
+  switch (hashType) {
+    case 1: return 20
+    case 2: return 32
+  }
+}
+
+rsshfp.encode = function encode (record, buf, offset) {
+  if (!buf) buf = Buffer.alloc(rsshfp.encodingLength(record))
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  offset += 2 // The function call starts with the offset pointer at the RDLENGTH field, not the RDATA one
+  buf[offset] = record.algorithm
+  offset += 1
+  buf[offset] = record.hash
+  offset += 1
+
+  const fingerprintBuf = Buffer.from(record.fingerprint.toUpperCase(), 'hex')
+  if (fingerprintBuf.length !== rsshfp.getFingerprintLengthForHashType(record.hash)) {
+    throw new Error('Invalid fingerprint length')
+  }
+  fingerprintBuf.copy(buf, offset)
+  offset += fingerprintBuf.byteLength
+
+  rsshfp.encode.bytes = offset - oldOffset
+  buf.writeUInt16BE(rsshfp.encode.bytes - 2, oldOffset)
+
+  return buf
+}
+
+rsshfp.encode.bytes = 0
+
+rsshfp.decode = function decode (buf, offset) {
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  const record = {}
+  offset += 2 // Account for the RDLENGTH field
+  record.algorithm = buf[offset]
+  offset += 1
+  record.hash = buf[offset]
+  offset += 1
+
+  const fingerprintLength = rsshfp.getFingerprintLengthForHashType(record.hash)
+  record.fingerprint = buf.slice(offset, offset + fingerprintLength).toString('hex').toUpperCase()
+  offset += fingerprintLength
+  rsshfp.decode.bytes = offset - oldOffset
+  return record
+}
+
+rsshfp.decode.bytes = 0
+
+rsshfp.encodingLength = function (record) {
+  return 4 + Buffer.from(record.fingerprint, 'hex').byteLength
+}
+
 const renc = exports.record = function (type) {
   switch (type.toUpperCase()) {
     case 'A': return ra
@@ -1315,6 +1374,7 @@ const renc = exports.record = function (type) {
     case 'RP': return rrp
     case 'NSEC': return rnsec
     case 'NSEC3': return rnsec3
+    case 'SSHFP': return rsshfp
     case 'DS': return rds
   }
   return runknown
