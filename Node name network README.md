@@ -1,4 +1,4 @@
-# dns-packet
+#a dns-packet
 [![](https://img.shields.io/npm/v/dns-packet.svg?style=flat)](https://www.npmjs.org/package/dns-packet) [![](https://img.shields.io/npm/dm/dns-packet.svg)](https://www.npmjs.org/package/dns-packet) [![](https://api.travis-ci.org/mafintosh/dns-packet.svg?style=flat)](https://travis-ci.org/mafintosh/dns-packet) [![Coverage Status](https://coveralls.io/repos/github/mafintosh/dns-packet/badge.svg?branch=master)](https://coveralls.io/github/mafintosh/dns-packet?branch=master)
 
 An [abstract-encoding](https://github.com/mafintosh/abstract-encoding) compliant module for encoding / decoding DNS packets. Lifted out of [multicast-dns](https://github.com/mafintosh/multicast-dns) as a separate module.
@@ -83,7 +83,7 @@ Packets look like this
 The bit flags available are
 
 ``` js
-packet.RECURSION_DESIRED
+packet.RECURSION_DESIREDpacket.RECURSION_DESIRED
 packet.RECURSION_AVAILABLE
 packet.TRUNCATED_RESPONSE
 packet.AUTHORITATIVE_ANSWER
