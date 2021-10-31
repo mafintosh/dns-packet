@@ -107,6 +107,15 @@ tape('soa', function (t) {
   t.end()
 })
 
+tape('sshfp', function (t) {
+  testEncoder(t, packet.sshfp, {
+    algorithm: 1,
+    hash: 1,
+    fingerprint: 'A108C9F834354D5B37AF988141C9294822F5BC00'
+  })
+  t.end()
+})
+
 tape('a', function (t) {
   testEncoder(t, packet.a, '127.0.0.1')
   t.end()
