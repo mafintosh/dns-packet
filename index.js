@@ -15,7 +15,7 @@ const NOT_FLUSH_MASK = ~FLUSH_MASK
 const QU_MASK = 1 << 15
 const NOT_QU_MASK = ~QU_MASK
 
-const name = exports.txt = exports.name = {}
+const name = exports.name = {}
 
 name.encode = function (str, buf, offset) {
   if (!buf) buf = Buffer.alloc(name.encodingLength(str))
