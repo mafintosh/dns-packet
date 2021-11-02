@@ -22,7 +22,4 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm install
       - run: npm run coverage
-      - run: nyc report --reporter=lcov
-      - uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: npx nyc report --reporter=text-lcov | npx coveralls

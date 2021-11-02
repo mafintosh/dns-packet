@@ -20,6 +20,7 @@
     "@leichtgewicht/ip-codec": "^2.0.1"
   },
   "devDependencies": {
+    "coveralls": "^3.1.1",
     "eslint": "^5.14.1",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.16.0",
