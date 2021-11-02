@@ -1,0 +1,61 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  CI: true
+  node-version: 16
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v3
+        name: Node ${{ env.node-version }}
+        with:
+          node-version: ${{ env.node-version }}
+      - uses: actions/checkout@v3
+      - run: npm install
+      - run: npm run lint
+
+  test:
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        node: [ 6, 8, 10, 12, 14, 16 ]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install
+      - run: npm test
+
+  coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install
+      - run: npx -y c8 --reporter=lcov npm test
+        env:
+          NODE_ENV: cov
+
+      - name: codecov
+        uses: codecov/codecov-action@v2
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
