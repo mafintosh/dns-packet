@@ -22,7 +22,7 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm install
       - run: npm run coverage
+      - run: nyc report --reporter=lcov
       - uses: coverallsapp/github-action@master
-        if: ${{ success() }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
