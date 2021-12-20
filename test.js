@@ -304,6 +304,41 @@ tape('name_encoding', function (t) {
   t.end()
 })
 
+tape('name_decoding', function (t) {
+  // The two most significant bits of a valid label header must be either both zero or both one
+  t.throws(function () { packet.name.decode(Buffer.from([0x80])) })
+  t.throws(function () { packet.name.decode(Buffer.from([0xb0])) })
+
+  // Ensure there's enough buffer to read
+  t.throws(function () { packet.name.decode(Buffer.from([0x01])) })
+  t.throws(function () { packet.name.decode(Buffer.from([0xc0])) })
+
+  // Allow only jumping backwards
+  t.throws(function () { packet.name.decode(Buffer.from([0xc0, 0x00])) })
+  t.throws(function () { packet.name.decode(Buffer.from([0xc0, 0x01])) })
+
+  // A name can be only 253 characters (when connected with dots)
+  const maxLength = Buffer.alloc(255)
+  maxLength.fill(Buffer.from([0x01, 0x61]), 0, 254)
+  t.ok(packet.name.decode(maxLength) === new Array(127).fill('a').join('.'))
+
+  const tooLong = Buffer.alloc(256)
+  tooLong.fill(Buffer.from([0x01, 0x61]))
+  t.throws(function () { packet.name.decode(tooLong) })
+
+  // Ensure jumps don't reset the total length counter
+  const tooLongWithJump = Buffer.alloc(403)
+  tooLongWithJump.fill(Buffer.from([0x01, 0x61]), 0, 200)
+  tooLongWithJump.fill(Buffer.from([0x01, 0x61]), 201, 401)
+  tooLongWithJump.set([0xc0, 0x00], 401)
+  t.throws(function () { packet.name.decode(tooLongWithJump, 201) })
+
+  // Ensure a jump to a null byte doesn't add an extra dot
+  t.ok(packet.name.decode(Buffer.from([0x00, 0x01, 0x61, 0xc0, 0x00]), 1) === 'a')
+
+  t.end()
+})
+
 tape('stream', function (t) {
   const val = {
     type: 'query',
