@@ -310,6 +310,8 @@ tape('name_decoding', function (t) {
   t.throws(function () { packet.name.decode(Buffer.from([0xb0])) }, /Can't decode name \(bad label\)$/)
 
   // Ensure there's enough buffer to read
+  t.throws(function () { packet.name.decode(Buffer.from([])) }, /Can't decode name \(buffer overflow\)$/)
+  t.throws(function () { packet.name.decode(Buffer.from([0x01, 0x00])) }, /Can't decode name \(buffer overflow\)$/)  
   t.throws(function () { packet.name.decode(Buffer.from([0x01])) }, /Can't decode name \(buffer overflow\)$/)
   t.throws(function () { packet.name.decode(Buffer.from([0xc0])) }, /Can't decode name \(buffer overflow\)$/)
 

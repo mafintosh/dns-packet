@@ -52,6 +52,9 @@ name.decode = function (buf, offset) {
   let jumped = false
 
   while (true) {
+    if (offset >= buf.length) {
+      throw new Error('Can\'t decode name (buffer overflow)')
+    }
     const len = buf[offset++]
     consumedBytes += jumped ? 0 : 1
 
