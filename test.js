@@ -336,6 +336,13 @@ tape('name_decoding', function (t) {
   // Ensure a jump to a null byte doesn't add extra dots
   t.ok(packet.name.decode(Buffer.from([0x00, 0x01, 0x61, 0xc0, 0x00]), 1) === 'a')
 
+  // Ensure deeply nested pointers don't cause "Maximum call stack size exceeded" errors
+  const buf = Buffer.alloc(16386)
+  for (let i = 0; i < 16384; i += 2) {
+    buf.writeUInt16BE(0xc000 | i, i + 2)
+  }
+  t.ok(packet.name.decode(buf, 16384) === '.')
+
   t.end()
 })
 

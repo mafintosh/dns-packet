@@ -42,24 +42,20 @@ name.encode = function (str, buf, offset) {
 
 name.encode.bytes = 0
 
-function decodeName (buf, offset, list, totalLength) {
-  const oldOffset = offset
-  let len = buf[offset++]
+name.decode = function (buf, offset) {
+  if (!offset) offset = 0
 
-  while (len > 0) {
-    if ((len & 0xc0) === 0xc0) {
-      if (offset + 1 > buf.length) {
-        throw new Error('Can\'t decode name (buffer overflow)')
-      }
-      const jumpOffset = buf.readUInt16BE(offset - 1) - 0xc000
-      if (jumpOffset >= oldOffset) {
-        // Allow only pointers to prior data. RFC 1035, section 4.1.4 states:
-        // "[...] an entire domain name or a list of labels at the end of a domain name
-        // is replaced with a pointer to a prior occurance (sic) of the same name."
-        throw new Error('Can\'t decode name (bad pointer)')
-      }
-      decodeName(buf, jumpOffset, list, totalLength)
-      offset++
+  const list = []
+  let oldOffset = offset
+  let totalLength = 0
+  let consumedBytes = 0
+  let jumped = false
+
+  while (true) {
+    const len = buf[offset++]
+    consumedBytes += jumped ? 0 : 1
+
+    if (len === 0) {
       break
     } else if ((len & 0xc0) === 0) {
       if (offset + len > buf.length) {
@@ -71,22 +67,28 @@ function decodeName (buf, offset, list, totalLength) {
       }
       list.push(buf.toString('utf-8', offset, offset + len))
       offset += len
-      len = buf[offset++]
+      consumedBytes += jumped ? 0 : len
+    } else if ((len & 0xc0) === 0xc0) {
+      if (offset + 1 > buf.length) {
+        throw new Error('Can\'t decode name (buffer overflow)')
+      }
+      const jumpOffset = buf.readUInt16BE(offset - 1) - 0xc000
+      if (jumpOffset >= oldOffset) {
+        // Allow only pointers to prior data. RFC 1035, section 4.1.4 states:
+        // "[...] an entire domain name or a list of labels at the end of a domain name
+        // is replaced with a pointer to a prior occurance (sic) of the same name."
+        throw new Error('Can\'t decode name (bad pointer)')
+      }
+      offset = jumpOffset
+      oldOffset = jumpOffset
+      consumedBytes += jumped ? 0 : 1
+      jumped = true
     } else {
       throw new Error('Can\'t decode name (bad label)')
     }
   }
 
-  return offset
-}
-
-name.decode = function (buf, offset) {
-  if (!offset) offset = 0
-
-  const list = []
-  const newOffset = decodeName(buf, offset, list, 0)
-
-  name.decode.bytes = newOffset - offset
+  name.decode.bytes = consumedBytes
   return list.length === 0 ? '.' : list.join('.')
 }
 
