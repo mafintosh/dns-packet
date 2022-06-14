@@ -1,3 +1,7 @@
+# Version 5.4.0 - 2022-06-14
+
+- Feature: Added support for the SSHFP record type.
+
 # Version 5.2.0 - 2019-02-21
 
 - Feature: Added support for de/encoding certain OPT options.
