@@ -1431,7 +1431,7 @@ const renc = exports.record = function (type) {
     case 'NSEC3': return rnsec3
     case 'SSHFP': return rsshfp
     case 'DS': return rds
-    case 'NAPTR': return rnaptr 
+    case 'NAPTR': return rnaptr
   }
   return runknown
 }
