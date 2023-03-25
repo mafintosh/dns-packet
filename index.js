@@ -1402,11 +1402,10 @@ rnaptr.decode = function (buf, offset) {
 rnaptr.decode.bytes = 0
 
 rnaptr.encodingLength = function (data) {
-  return 
-    string.encodingLength(data.flags) +
+  return string.encodingLength(data.flags) +
     string.encodingLength(data.services) +
     string.encodingLength(data.regexp) +
-    name.encodingLength(data.replacement) + 6;
+    name.encodingLength(data.replacement) + 6
 }
 
 const renc = exports.record = function (type) {
