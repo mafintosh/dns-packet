@@ -367,6 +367,7 @@ The options `PADDING`, `CLIENT_SUBNET`, `TCP_KEEPALIVE` and `KEY_TAG` support en
 ```
 
 #### `NAPTR`
+
 ``` js
 {
   data:
