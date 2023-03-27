@@ -556,6 +556,18 @@ tape('ds', function (t) {
   t.end()
 })
 
+tape('naptr', function (t) {
+  testEncoder(t, packet.naptr, {
+    order: 1,
+    preference: 1,
+    flags: 'S',
+    services: 'SIP+D2T',
+    regexp: '!^.*$!sip:customer-service@xuexample.com!',
+    replacement: '_sip._udp.xuexample.com'
+  })
+  t.end()
+})
+
 tape('unpack', function (t) {
   const buf = Buffer.from([
     0x00, 0x79,

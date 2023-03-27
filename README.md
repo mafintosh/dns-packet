@@ -366,6 +366,22 @@ The options `PADDING`, `CLIENT_SUBNET`, `TCP_KEEPALIVE` and `KEY_TAG` support en
 }
 ```
 
+#### `NAPTR`
+
+``` js
+{
+  data:
+    {
+      order: 100,
+      preference: 10,
+      flags: 's',
+      services: 'SIP+D2U',
+      regexp: '!^.*$!sip:customer-service@example.com!',
+      replacement: '_sip._udp.example.com'
+    }
+}
+```
+
 When encoding, scalar values are converted to an array and strings are converted to UTF-8 encoded Buffers. When decoding, the return value will always be an array of Buffer.
 
 If you need another record type, open an issue and we'll try to add it.

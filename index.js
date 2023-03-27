@@ -1353,6 +1353,62 @@ rsshfp.encodingLength = function (record) {
   return 4 + Buffer.from(record.fingerprint, 'hex').byteLength
 }
 
+const rnaptr = exports.naptr = {}
+
+rnaptr.encode = function (data, buf, offset) {
+  if (!buf) buf = Buffer.alloc(rnaptr.encodingLength(data))
+  if (!offset) offset = 0
+  const oldOffset = offset
+  offset += 2
+  buf.writeUInt16BE(data.order || 0, offset)
+  offset += 2
+  buf.writeUInt16BE(data.preference || 0, offset)
+  offset += 2
+  string.encode(data.flags, buf, offset)
+  offset += string.encode.bytes
+  string.encode(data.services, buf, offset)
+  offset += string.encode.bytes
+  string.encode(data.regexp, buf, offset)
+  offset += string.encode.bytes
+  name.encode(data.replacement, buf, offset)
+  offset += name.encode.bytes
+  rnaptr.encode.bytes = offset - oldOffset
+  buf.writeUInt16BE(rnaptr.encode.bytes - 2, oldOffset)
+  return buf
+}
+
+rnaptr.encode.bytes = 0
+
+rnaptr.decode = function (buf, offset) {
+  if (!offset) offset = 0
+  const oldOffset = offset
+  const data = {}
+  offset += 2
+  data.order = buf.readUInt16BE(offset)
+  offset += 2
+  data.preference = buf.readUInt16BE(offset)
+  offset += 2
+  data.flags = string.decode(buf, offset)
+  offset += string.decode.bytes
+  data.services = string.decode(buf, offset)
+  offset += string.decode.bytes
+  data.regexp = string.decode(buf, offset)
+  offset += string.decode.bytes
+  data.replacement = name.decode(buf, offset)
+  offset += name.decode.bytes
+  rnaptr.decode.bytes = offset - oldOffset
+  return data
+}
+
+rnaptr.decode.bytes = 0
+
+rnaptr.encodingLength = function (data) {
+  return string.encodingLength(data.flags) +
+    string.encodingLength(data.services) +
+    string.encodingLength(data.regexp) +
+    name.encodingLength(data.replacement) + 6
+}
+
 const renc = exports.record = function (type) {
   switch (type.toUpperCase()) {
     case 'A': return ra
@@ -1376,6 +1432,7 @@ const renc = exports.record = function (type) {
     case 'NSEC3': return rnsec3
     case 'SSHFP': return rsshfp
     case 'DS': return rds
+    case 'NAPTR': return rnaptr
   }
   return runknown
 }
