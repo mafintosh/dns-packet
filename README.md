@@ -371,12 +371,12 @@ The options `PADDING`, `CLIENT_SUBNET`, `TCP_KEEPALIVE` and `KEY_TAG` support en
 {
   data:
     {
-      order: order,
-      preference: preference,
-      flags: indicateFlag,
-      services: enumName,
-      regexp: regularExpression,
-      replacement: domainName
+      order: 100,
+      preference: 10,
+      flags: 's',
+      services: 'SIP+D2U',
+      regexp: '!^.*$!sip:customer-service@example.com!',
+      replacement: '_sip._udp.example.com'
     }
 }
 ```
