@@ -1,3 +1,7 @@
+# Version 5.5.0 - 2023-03-27
+
+- Feature: Added support for the NAPTR record type.
+
 # Version 5.4.0 - 2022-06-14
 
 - Feature: Added support for the SSHFP record type.
