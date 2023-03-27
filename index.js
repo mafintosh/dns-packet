@@ -1372,7 +1372,8 @@ rnaptr.encode = function (data, buf, offset) {
   offset += string.encode.bytes
   name.encode(data.replacement, buf, offset)
   offset += name.encode.bytes
-  buf.writeUInt16BE(offset - oldOffset - 2, oldOffset)
+  rnaptr.encode.bytes = offset - oldOffset
+  buf.writeUInt16BE(rnaptr.encode.bytes - 2, oldOffset)
   return buf
 }
 
