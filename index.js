@@ -1409,6 +1409,60 @@ rnaptr.encodingLength = function (data) {
     name.encodingLength(data.replacement) + 6
 }
 
+const rtlsa = exports.tlsa = {}
+
+rtlsa.encode = function (cert, buf, offset) {
+  if (!buf) buf = Buffer.alloc(rtlsa.encodingLength(cert))
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  const certdata = cert.certificate
+  if (!Buffer.isBuffer(certdata)) {
+    throw new Error('Certificate must be a Buffer')
+  }
+
+  offset += 2 // Leave space for length
+  buf.writeUInt8(cert.usage, offset)
+  offset += 1
+  buf.writeUInt8(cert.selector, offset)
+  offset += 1
+  buf.writeUInt8(cert.matchingType, offset)
+  offset += 1
+  certdata.copy(buf, offset, 0, certdata.length)
+  offset += certdata.length
+
+  rtlsa.encode.bytes = offset - oldOffset
+  buf.writeUInt16BE(rtlsa.encode.bytes - 2, oldOffset)
+  return buf
+}
+
+rtlsa.encode.bytes = 0
+
+rtlsa.decode = function (buf, offset) {
+  if (!offset) offset = 0
+  const oldOffset = offset
+
+  const cert = {}
+  const length = buf.readUInt16BE(offset)
+  offset += 2
+  cert.usage = buf.readUInt8(offset)
+  offset += 1
+  cert.selector = buf.readUInt8(offset)
+  offset += 1
+  cert.matchingType = buf.readUInt8(offset)
+  offset += 1
+  cert.certificate = buf.slice(offset, oldOffset + length + 2)
+  offset += cert.certificate.length
+  rtlsa.decode.bytes = offset - oldOffset
+  return cert
+}
+
+rtlsa.decode.bytes = 0
+
+rtlsa.encodingLength = function (cert) {
+  return 5 + Buffer.byteLength(cert.certificate)
+}
+
 const renc = exports.record = function (type) {
   switch (type.toUpperCase()) {
     case 'A': return ra
@@ -1433,6 +1487,7 @@ const renc = exports.record = function (type) {
     case 'SSHFP': return rsshfp
     case 'DS': return rds
     case 'NAPTR': return rnaptr
+    case 'TLSA': return rtlsa
   }
   return runknown
 }
