@@ -374,6 +374,17 @@ The options `PADDING`, `CLIENT_SUBNET`, `TCP_KEEPALIVE` and `KEY_TAG` support en
 }
 ```
 
+#### `TLSA`
+
+``` js
+{
+  usage: 3,
+  selector: 1,
+  matchingType: 1,
+  certificate: Buffer
+}
+```
+
 #### `TXT`
 
 ``` js
