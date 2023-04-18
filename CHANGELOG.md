@@ -1,3 +1,7 @@
+# Version 5.6.0 - 2023-04-18
+
+- Feature: Added support for the TLSA record type.
+
 # Version 5.5.0 - 2023-03-27
 
 - Feature: Added support for the NAPTR record type.
