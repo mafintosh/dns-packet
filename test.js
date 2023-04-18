@@ -568,6 +568,16 @@ tape('naptr', function (t) {
   t.end()
 })
 
+tape('tlsa', function (t) {
+  testEncoder(t, packet.tlsa, {
+    usage: 3,
+    selector: 1,
+    matchingType: 1,
+    certificate: Buffer.from([0, 1, 2, 3, 4, 5])
+  })
+  t.end()
+})
+
 tape('unpack', function (t) {
   const buf = Buffer.from([
     0x00, 0x79,
