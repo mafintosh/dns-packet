@@ -8,7 +8,7 @@ on:
 
 env:
   CI: true
-  node-version: 18
+  node-version: 20
 
 jobs:
   lint:
@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        node: [ 6, 8, 10, 12, 14, 16, 18 ]
+        node: [ 6, 8, 10, 12, 14, 16, 18, 20 ]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
