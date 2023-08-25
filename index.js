@@ -17,7 +17,7 @@ const NOT_QU_MASK = ~QU_MASK
 
 const name = exports.name = {}
 
-name.encode = function (str, buf, offset) {
+name.encode = function (str, buf, offset, { mail = false } = {}) {
   if (!buf) buf = Buffer.alloc(name.encodingLength(str))
   if (!offset) offset = 0
   const oldOffset = offset
@@ -25,7 +25,23 @@ name.encode = function (str, buf, offset) {
   // strip leading and trailing .
   const n = str.replace(/^\.|\.$/gm, '')
   if (n.length) {
-    const list = n.split('.')
+    let list = []
+    if (mail) {
+      let localPart = ''
+      n.split('.').forEach(label => {
+        if (label.endsWith('\\')) {
+          localPart += (localPart.length ? '.' : '') + label.slice(0, -1)
+        } else {
+          if (list.length === 0 && localPart.length) {
+            list.push(localPart + '.' + label)
+          } else {
+            list.push(label)
+          }
+        }
+      })
+    } else {
+      list = n.split('.')
+    }
 
     for (let i = 0; i < list.length; i++) {
       const len = buf.write(list[i], offset + 1)
@@ -42,7 +58,7 @@ name.encode = function (str, buf, offset) {
 
 name.encode.bytes = 0
 
-name.decode = function (buf, offset) {
+name.decode = function (buf, offset, { mail = false } = {}) {
   if (!offset) offset = 0
 
   const list = []
@@ -68,7 +84,11 @@ name.decode = function (buf, offset) {
       if (totalLength > 254) {
         throw new Error('Cannot decode name (name too long)')
       }
-      list.push(buf.toString('utf-8', offset, offset + len))
+      let label = buf.toString('utf-8', offset, offset + len)
+      if (mail) {
+        label = label.replace(/\./g, '\\.')
+      }
+      list.push(label)
       offset += len
       consumedBytes += jumped ? 0 : len
     } else if ((len & 0xc0) === 0xc0) {
@@ -254,7 +274,7 @@ rsoa.encode = function (data, buf, offset) {
   offset += 2
   name.encode(data.mname, buf, offset)
   offset += name.encode.bytes
-  name.encode(data.rname, buf, offset)
+  name.encode(data.rname, buf, offset, { mail: true })
   offset += name.encode.bytes
   buf.writeUInt32BE(data.serial || 0, offset)
   offset += 4
@@ -283,7 +303,7 @@ rsoa.decode = function (buf, offset) {
   offset += 2
   data.mname = name.decode(buf, offset)
   offset += name.decode.bytes
-  data.rname = name.decode(buf, offset)
+  data.rname = name.decode(buf, offset, { mail: true })
   offset += name.decode.bytes
   data.serial = buf.readUInt32BE(offset)
   offset += 4
@@ -1007,7 +1027,7 @@ rrp.encode = function (data, buf, offset) {
   const oldOffset = offset
 
   offset += 2 // Leave space for length
-  name.encode(data.mbox || '.', buf, offset)
+  name.encode(data.mbox || '.', buf, offset, { mail: true })
   offset += name.encode.bytes
   name.encode(data.txt || '.', buf, offset)
   offset += name.encode.bytes
@@ -1024,7 +1044,7 @@ rrp.decode = function (buf, offset) {
 
   const data = {}
   offset += 2
-  data.mbox = name.decode(buf, offset) || '.'
+  data.mbox = name.decode(buf, offset, { mail: true }) || '.'
   offset += name.decode.bytes
   data.txt = name.decode(buf, offset) || '.'
   offset += name.decode.bytes
