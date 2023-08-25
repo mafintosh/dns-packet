@@ -313,30 +313,37 @@ tape('name_encoding', function (t) {
   offset += packet.name.encode.bytes
 
   data = 'a.b.c.d.example.com'
-  packet.name.encode(data, buf, offset, true)
+  packet.name.encode(data, buf, offset, { mail: false })
+  t.ok(packet.name.encode.bytes === 21, 'name (mail) encoding length matches')
+  dd = packet.name.decode(buf, offset)
+  t.ok(data === dd, 'encode/decode matches')
+  offset += packet.name.encode.bytes
+
+  data = 'a.b.c.d.example.com'
+  packet.name.encode(data, buf, offset, { mail: true })
   t.ok(packet.name.encode.bytes === 21, 'name (mail) encoding length matches')
   dd = packet.name.decode(buf, offset)
   t.ok(data === dd, 'encode/decode matches')
   offset += packet.name.encode.bytes
 
   data = 'a\\.b.c.d.example.com'
-  packet.name.encode(data, buf, offset, true)
+  packet.name.encode(data, buf, offset, { mail: true })
   t.ok(packet.name.encode.bytes === 21, 'name (mail) encoding length matches')
-  dd = packet.name.decode(buf, offset, true)
+  dd = packet.name.decode(buf, offset, { mail: true })
   t.ok(data === dd, 'encode/decode matches')
   offset += packet.name.encode.bytes
 
   data = 'a\\.b\\.c.d.example.com'
-  packet.name.encode(data, buf, offset, true)
+  packet.name.encode(data, buf, offset, { mail: true })
   t.ok(packet.name.encode.bytes === 21, 'name (mail) encoding length matches')
-  dd = packet.name.decode(buf, offset, true)
+  dd = packet.name.decode(buf, offset, { mail: true })
   t.ok(data === dd, 'encode/decode matches')
   offset += packet.name.encode.bytes
 
   data = 'root\\.mail'
-  packet.name.encode(data, buf, offset, true)
+  packet.name.encode(data, buf, offset, { mail: true })
   t.ok(packet.name.encode.bytes === 11, 'name (mail) encoding length matches')
-  dd = packet.name.decode(buf, offset, true)
+  dd = packet.name.decode(buf, offset, { mail: true })
   t.ok(data === dd, 'encode/decode matches')
   offset += packet.name.encode.bytes
 

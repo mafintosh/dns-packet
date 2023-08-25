@@ -17,7 +17,7 @@ const NOT_QU_MASK = ~QU_MASK
 
 const name = exports.name = {}
 
-name.encode = function (str, buf, offset, mail = false) {
+name.encode = function (str, buf, offset, { mail = false } = {}) {
   if (!buf) buf = Buffer.alloc(name.encodingLength(str))
   if (!offset) offset = 0
   const oldOffset = offset
@@ -58,7 +58,7 @@ name.encode = function (str, buf, offset, mail = false) {
 
 name.encode.bytes = 0
 
-name.decode = function (buf, offset, mail = false) {
+name.decode = function (buf, offset, { mail = false } = {}) {
   if (!offset) offset = 0
 
   const list = []
@@ -274,7 +274,7 @@ rsoa.encode = function (data, buf, offset) {
   offset += 2
   name.encode(data.mname, buf, offset)
   offset += name.encode.bytes
-  name.encode(data.rname, buf, offset, true)
+  name.encode(data.rname, buf, offset, { mail: true })
   offset += name.encode.bytes
   buf.writeUInt32BE(data.serial || 0, offset)
   offset += 4
@@ -303,7 +303,7 @@ rsoa.decode = function (buf, offset) {
   offset += 2
   data.mname = name.decode(buf, offset)
   offset += name.decode.bytes
-  data.rname = name.decode(buf, offset, true)
+  data.rname = name.decode(buf, offset, { mail: true })
   offset += name.decode.bytes
   data.serial = buf.readUInt32BE(offset)
   offset += 4
@@ -1027,7 +1027,7 @@ rrp.encode = function (data, buf, offset) {
   const oldOffset = offset
 
   offset += 2 // Leave space for length
-  name.encode(data.mbox || '.', buf, offset, true)
+  name.encode(data.mbox || '.', buf, offset, { mail: true })
   offset += name.encode.bytes
   name.encode(data.txt || '.', buf, offset)
   offset += name.encode.bytes
@@ -1044,7 +1044,7 @@ rrp.decode = function (buf, offset) {
 
   const data = {}
   offset += 2
-  data.mbox = name.decode(buf, offset, true) || '.'
+  data.mbox = name.decode(buf, offset, { mail: true }) || '.'
   offset += name.decode.bytes
   data.txt = name.decode(buf, offset) || '.'
   offset += name.decode.bytes
