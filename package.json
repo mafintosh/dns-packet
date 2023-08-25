@@ -1,6 +1,6 @@
 {
   "name": "dns-packet",
-  "version": "5.6.0",
+  "version": "5.6.1",
   "description": "An abstract-encoding compliant module for encoding / decoding DNS packets",
   "author": "Mathias Buus",
   "license": "MIT",
