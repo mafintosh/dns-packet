@@ -84,11 +84,11 @@ name.decode = function (buf, offset, { mail = false } = {}) {
       if (totalLength > 254) {
         throw new Error('Cannot decode name (name too long)')
       }
+      let label = buf.toString('utf-8', offset, offset + len)
       if (mail) {
-        list.push(buf.toString('utf-8', offset, offset + len).replace(/\./g, '\\.'))
-      } else {
-        list.push(buf.toString('utf-8', offset, offset + len))
+        label = label.replace(/\./g, '\\.')
       }
+      list.push(label)
       offset += len
       consumedBytes += jumped ? 0 : len
     } else if ((len & 0xc0) === 0xc0) {
