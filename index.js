@@ -1630,8 +1630,8 @@ question.decode = function (buf, offset) {
   q.type = types.toString(buf.readUInt16BE(offset))
   offset += 2
 
-  q.qu_bit = (buf.readUInt16BE(offset) & QU_MASK) != 0;
-  q.class = q.qu_bit ? classes.toString(buf.readUInt16BE(offset) - QU_MASK) : classes.toString(buf.readUInt16BE(offset));
+  q.qu_bit = (buf.readUInt16BE(offset) & QU_MASK) !== 0
+  q.class = q.qu_bit ? classes.toString(buf.readUInt16BE(offset) - QU_MASK) : classes.toString(buf.readUInt16BE(offset))
   offset += 2
 
   question.decode.bytes = offset - oldOffset
