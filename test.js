@@ -164,6 +164,34 @@ tape('query', function (t) {
     }]
   })
 
+  testEncoder(t, packet, {
+    type: 'query',
+    questions: [{
+      type: 'A',
+      class: 'IN',
+      name: 'hello.a.com',
+      qu_bit: false
+    }, {
+      type: 'SRV',
+      name: 'hello.srv.com',
+      qu_bit: false
+    }]
+  })
+
+  testEncoder(t, packet, {
+    type: 'query',
+    questions: [{
+      type: 'A',
+      class: 'IN',
+      name: 'hello.a.com',
+      qu_bit: true
+    }, {
+      type: 'SRV',
+      name: 'hello.srv.com',
+      qu_bit: true
+    }]
+  })
+
   t.end()
 })
 
