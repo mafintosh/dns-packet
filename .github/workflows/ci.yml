@@ -8,17 +8,17 @@ on:
 
 env:
   CI: true
-  node-version: 20
+  node-version: 22
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         name: Node ${{ env.node-version }}
         with:
           node-version: ${{ env.node-version }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: npm install
       - run: npm run lint
 
@@ -28,11 +28,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        node: [ 6, 8, 10, 12, 14, 16, 18, 20 ]
+        node: [ 6, 8, 10, 12, 14, 16, 18, 20, 22 ]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
       - run: npm install
@@ -42,8 +42,8 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.node-version }}
       - run: npm install
@@ -52,7 +52,7 @@ jobs:
           NODE_ENV: cov
 
       - name: codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v5
 
       - name: Coveralls
         uses: coverallsapp/github-action@master
