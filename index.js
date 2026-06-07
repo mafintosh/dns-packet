@@ -434,11 +434,12 @@ rtxt.encode = function (data, buf, offset) {
   const oldOffset = offset
   offset += 2
 
-  data.forEach(function (d) {
+  for (let i = 0; i < data.length; i++) {
+    const d = data[i]
     buf[offset++] = d.length
     d.copy(buf, offset, 0, d.length)
     offset += d.length
-  })
+  }
 
   buf[oldOffset] = (offset - oldOffset - 2) >> 8; buf[oldOffset + 1] = (offset - oldOffset - 2) & 0xff
   rtxt.encode.bytes = offset - oldOffset
