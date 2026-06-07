@@ -1506,32 +1506,35 @@ rtlsa.encodingLength = function (cert) {
 }
 
 const renc = exports.record = function (type) {
-  switch (type.toUpperCase()) {
-    case 'A': return ra
-    case 'PTR': return rptr
-    case 'CNAME': return rcname
-    case 'DNAME': return rdname
-    case 'TXT': return rtxt
-    case 'NULL': return rnull
-    case 'AAAA': return raaaa
-    case 'SRV': return rsrv
-    case 'HINFO': return rhinfo
-    case 'CAA': return rcaa
-    case 'NS': return rns
-    case 'SOA': return rsoa
-    case 'MX': return rmx
-    case 'OPT': return ropt
-    case 'DNSKEY': return rdnskey
-    case 'RRSIG': return rrrsig
-    case 'RP': return rrp
-    case 'NSEC': return rnsec
-    case 'NSEC3': return rnsec3
-    case 'SSHFP': return rsshfp
-    case 'DS': return rds
-    case 'NAPTR': return rnaptr
-    case 'TLSA': return rtlsa
-  }
-  return runknown
+  const r = rencMap[type.toUpperCase()]
+  return r || runknown
+}
+
+// Pre-built lookup map for record type -> encoder
+const rencMap = {
+  A: ra,
+  PTR: rptr,
+  CNAME: rcname,
+  DNAME: rdname,
+  TXT: rtxt,
+  NULL: rnull,
+  AAAA: raaaa,
+  SRV: rsrv,
+  HINFO: rhinfo,
+  CAA: rcaa,
+  NS: rns,
+  SOA: rsoa,
+  MX: rmx,
+  OPT: ropt,
+  DNSKEY: rdnskey,
+  RRSIG: rrrsig,
+  RP: rrp,
+  NSEC: rnsec,
+  NSEC3: rnsec3,
+  SSHFP: rsshfp,
+  DS: rds,
+  NAPTR: rnaptr,
+  TLSA: rtlsa
 }
 
 const answer = exports.answer = {}
