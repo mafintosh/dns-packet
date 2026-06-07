@@ -443,9 +443,6 @@ rtxt.encode = function (data, buf, offset) {
     if (typeof data[i] === 'string') {
       data[i] = Buffer.from(data[i])
     }
-    if (!Buffer.isBuffer(data[i])) {
-      throw new Error('Must be a Buffer')
-    }
   }
 
   if (!buf) buf = Buffer.alloc(rtxt.encodingLength(data))
