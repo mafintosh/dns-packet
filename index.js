@@ -15,6 +15,19 @@ const NOT_FLUSH_MASK = ~FLUSH_MASK
 const QU_MASK = 1 << 15
 const NOT_QU_MASK = ~QU_MASK
 
+// Pre-computed common type numbers
+const TYPE_A = 1
+const TYPE_NS = 2
+const TYPE_CNAME = 5
+const TYPE_SOA = 6
+const TYPE_PTR = 12
+const TYPE_MX = 15
+const TYPE_TXT = 16
+const TYPE_AAAA = 28
+const TYPE_SRV = 33
+const TYPE_OPT = 41
+const TYPE_ANY = 255
+
 // Helper: fast byteLength for ASCII strings
 function byteLengthAscii(s) {
   const len = s.length
@@ -1657,7 +1670,7 @@ answer.encode = function (a, buf, offset) {
   const typeNum = types.toType(a.type)
   buf[offset] = (typeNum) >> 8; buf[offset + 1] = (typeNum) & 0xff
 
-  if (typeNum === 41) { // OPT
+  if (typeNum === TYPE_OPT) { // OPT
     if (a.name !== '.') {
       throw new Error('OPT name must be root.')
     }
@@ -1697,7 +1710,7 @@ answer.decode = function (buf, offset) {
   offset += name.decode.bytes
   const typeNum = ((buf[offset] << 8) | buf[offset + 1])
   a.type = types.toString(typeNum)
-  if (typeNum === 41) { // OPT type number - avoid string comparison
+  if (typeNum === TYPE_OPT) { // OPT type number - avoid string comparison
     a.udpPayloadSize = ((buf[offset + 2] << 8) | buf[offset + 2 + 1])
     a.extendedRcode = buf[offset + 4]
     a.ednsVersion = buf[offset + 5]
