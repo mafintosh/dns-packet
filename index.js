@@ -1692,19 +1692,19 @@ answer.decode = function (buf, offset) {
 
   a.name = name.decode(buf, offset)
   offset += name.decode.bytes
-  const typeNum = buf.readUInt16BE(offset)
+  const typeNum = (buf[offset] << 8) | buf[offset + 1]
   a.type = types.toString(typeNum)
   if (typeNum === TYPE_OPT) { // OPT type number - avoid string comparison
-    a.udpPayloadSize = buf.readUInt16BE(offset + 2)
+    a.udpPayloadSize = (buf[offset + 2] << 8) | buf[offset + 3]
     a.extendedRcode = buf[offset + 4]
     a.ednsVersion = buf[offset + 5]
-    a.flags = buf.readUInt16BE(offset + 6)
+    a.flags = (buf[offset + 6] << 8) | buf[offset + 7]
     a.flag_do = (a.flags & 0x8000) !== 0
     a.options = ropt.decode(buf, offset + 8)
     offset += 8 + ropt.decode.bytes
   } else {
-    const klass = buf.readUInt16BE(offset + 2)
-    a.ttl = buf.readUInt32BE(offset + 4)
+    const klass = (buf[offset + 2] << 8) | buf[offset + 3]
+    a.ttl = ((buf[offset + 4] << 24) | (buf[offset + 5] << 16) | (buf[offset + 6] << 8) | buf[offset + 7]) >>> 0
 
     a.class = classes.toString(klass & NOT_FLUSH_MASK)
     a.flush = (klass & FLUSH_MASK) !== 0
