@@ -1608,9 +1608,7 @@ const rencByNum = {
 }
 
 const renc = exports.record = function (type) {
-  // Try direct lookup first (most types are already uppercase)
-  const r = rencMap[type] || rencMap[type.toUpperCase()]
-  return r || runknown
+  return rencMap[type] || runknown
 }
 
 // Get encoder by type number (avoids string conversion + toUpperCase)
@@ -1618,31 +1616,31 @@ function rencByTypeNum(num) {
   return rencByNum[num] || runknown
 }
 
-// Pre-built lookup map for record type -> encoder
+// Pre-built lookup map for record type -> encoder (includes lowercase keys)
 const rencMap = {
-  A: ra,
-  PTR: rptr,
-  CNAME: rcname,
-  DNAME: rdname,
-  TXT: rtxt,
-  NULL: rnull,
-  AAAA: raaaa,
-  SRV: rsrv,
-  HINFO: rhinfo,
-  CAA: rcaa,
-  NS: rns,
-  SOA: rsoa,
-  MX: rmx,
-  OPT: ropt,
-  DNSKEY: rdnskey,
-  RRSIG: rrrsig,
-  RP: rrp,
-  NSEC: rnsec,
-  NSEC3: rnsec3,
-  SSHFP: rsshfp,
-  DS: rds,
-  NAPTR: rnaptr,
-  TLSA: rtlsa
+  A: ra, a: ra,
+  PTR: rptr, ptr: rptr,
+  CNAME: rcname, cname: rcname,
+  DNAME: rdname, dname: rdname,
+  TXT: rtxt, txt: rtxt,
+  NULL: rnull, null: rnull,
+  AAAA: raaaa, aaaa: raaaa,
+  SRV: rsrv, srv: rsrv,
+  HINFO: rhinfo, hinfo: rhinfo,
+  CAA: rcaa, caa: rcaa,
+  NS: rns, ns: rns,
+  SOA: rsoa, soa: rsoa,
+  MX: rmx, mx: rmx,
+  OPT: ropt, opt: ropt,
+  DNSKEY: rdnskey, dnskey: rdnskey,
+  RRSIG: rrrsig, rrsig: rrrsig,
+  RP: rrp, rp: rrp,
+  NSEC: rnsec, nsec: rnsec,
+  NSEC3: rnsec3, nsec3: rnsec3,
+  SSHFP: rsshfp, sshfp: rsshfp,
+  DS: rds, ds: rds,
+  NAPTR: rnaptr, naptr: rnaptr,
+  TLSA: rtlsa, tlsa: rtlsa
 }
 
 const answer = exports.answer = {}
