@@ -473,17 +473,21 @@ rtxt.decode = function (buf, offset) {
   let remaining = ((buf[offset] << 8) | buf[offset + 1])
   offset += 2
 
-  let data = []
+  // Estimate array size from remaining bytes (worst case: 1 byte per TXT entry)
+  const estimatedSize = Math.max(1, remaining)
+  const data = new Array(estimatedSize)
+  let idx = 0
   while (remaining > 0) {
     const len = buf[offset++]
     --remaining
     if (remaining < len) {
       throw new Error('Buffer overflow')
     }
-    data.push(buf.subarray(offset, offset + len))
+    data[idx++] = buf.subarray(offset, offset + len)
     offset += len
     remaining -= len
   }
+  data.length = idx
 
   rtxt.decode.bytes = offset - oldOffset
   return data
