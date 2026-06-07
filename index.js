@@ -209,7 +209,7 @@ string.encode = function (s, buf, offset) {
   if (!buf) buf = Buffer.alloc(string.encodingLength(s))
   if (!offset) offset = 0
 
-  const len = buf.write(s, offset + 1)
+  const len = asciiWrite(s, buf, offset + 1)
   buf[offset] = len
   string.encode.bytes = len + 1
   return buf
@@ -221,7 +221,7 @@ string.decode = function (buf, offset) {
   if (!offset) offset = 0
 
   const len = buf[offset]
-  const s = buf.toString('utf-8', offset + 1, offset + 1 + len)
+  const s = asciiToString(buf, offset + 1, len)
   string.decode.bytes = len + 1
   return s
 }
