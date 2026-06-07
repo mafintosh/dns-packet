@@ -1620,7 +1620,8 @@ const rencByNum = {
 }
 
 const renc = exports.record = function (type) {
-  const r = rencMap[type.toUpperCase()]
+  // Try direct lookup first (most types are already uppercase)
+  const r = rencMap[type] || rencMap[type.toUpperCase()]
   return r || runknown
 }
 
