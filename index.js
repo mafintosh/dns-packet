@@ -654,7 +654,7 @@ rcaa.ISSUER_CRITICAL = 1 << 7
 rcaa.encode = function (data, buf, offset) {
   const len = rcaa.encodingLength(data)
 
-  if (!buf) buf = Buffer.alloc(rcaa.encodingLength(data))
+  if (!buf) buf = Buffer.alloc(len)
   if (!offset) offset = 0
 
   if (data.issuerCritical) {
@@ -667,8 +667,7 @@ rcaa.encode = function (data, buf, offset) {
   offset += 1
   string.encode(data.tag, buf, offset)
   offset += string.encode.bytes
-  buf.write(data.value, offset)
-  offset += Buffer.byteLength(data.value)
+  offset += asciiWrite(data.value, buf, offset)
 
   rcaa.encode.bytes = len
   return buf
