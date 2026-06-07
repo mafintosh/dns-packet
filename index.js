@@ -368,16 +368,14 @@ rsoa.encode = function (data, buf, offset) {
   offset += name.encode.bytes
   name.encode(data.rname, buf, offset, { mail: true })
   offset += name.encode.bytes
-  buf[offset] = (data.serial || 0) >>> 24; buf[offset + 1] = ((data.serial || 0) >>> 16) & 0xff; buf[offset + 2] = ((data.serial || 0) >>> 8) & 0xff; buf[offset + 3] = (data.serial || 0) & 0xff
-  offset += 4
-  buf[offset] = (data.refresh || 0) >>> 24; buf[offset + 1] = ((data.refresh || 0) >>> 16) & 0xff; buf[offset + 2] = ((data.refresh || 0) >>> 8) & 0xff; buf[offset + 3] = (data.refresh || 0) & 0xff
-  offset += 4
-  buf[offset] = (data.retry || 0) >>> 24; buf[offset + 1] = ((data.retry || 0) >>> 16) & 0xff; buf[offset + 2] = ((data.retry || 0) >>> 8) & 0xff; buf[offset + 3] = (data.retry || 0) & 0xff
-  offset += 4
-  buf[offset] = (data.expire || 0) >>> 24; buf[offset + 1] = ((data.expire || 0) >>> 16) & 0xff; buf[offset + 2] = ((data.expire || 0) >>> 8) & 0xff; buf[offset + 3] = (data.expire || 0) & 0xff
-  offset += 4
-  buf[offset] = (data.minimum || 0) >>> 24; buf[offset + 1] = ((data.minimum || 0) >>> 16) & 0xff; buf[offset + 2] = ((data.minimum || 0) >>> 8) & 0xff; buf[offset + 3] = (data.minimum || 0) & 0xff
-  offset += 4
+  // Batch 5 uint32 writes using DataView for better performance
+  const dv = new DataView(buf.buffer, buf.byteOffset + offset, 20)
+  dv.setUint32(0, data.serial || 0)
+  dv.setUint32(4, data.refresh || 0)
+  dv.setUint32(8, data.retry || 0)
+  dv.setUint32(12, data.expire || 0)
+  dv.setUint32(16, data.minimum || 0)
+  offset += 20
 
   buf[oldOffset] = (offset - oldOffset - 2) >> 8; buf[oldOffset + 1] = (offset - oldOffset - 2) & 0xff
   rsoa.encode.bytes = offset - oldOffset
