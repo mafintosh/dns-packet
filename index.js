@@ -624,13 +624,13 @@ rsrv.encode = function (data, buf, offset) {
   if (!buf) buf = Buffer.alloc(rsrv.encodingLength(data))
   if (!offset) offset = 0
 
-  buf[offset + 2] = (data.priority || 0) >> 8; buf[offset + 2 + 1] = (data.priority || 0) & 0xff
-  buf[offset + 4] = (data.weight || 0) >> 8; buf[offset + 4 + 1] = (data.weight || 0) & 0xff
-  buf[offset + 6] = (data.port || 0) >> 8; buf[offset + 6 + 1] = (data.port || 0) & 0xff
+  buf[offset + 2] = (data.priority || 0) >> 8; buf[offset + 3] = (data.priority || 0) & 0xff
+  buf[offset + 4] = (data.weight || 0) >> 8; buf[offset + 5] = (data.weight || 0) & 0xff
+  buf[offset + 6] = (data.port || 0) >> 8; buf[offset + 7] = (data.port || 0) & 0xff
   name.encode(data.target, buf, offset + 8)
 
   const len = name.encode.bytes + 6
-  buf[offset] = (len) >> 8; buf[offset + 1] = (len) & 0xff
+  buf[offset] = len >> 8; buf[offset + 1] = len & 0xff
 
   rsrv.encode.bytes = len + 2
   return buf
@@ -761,7 +761,7 @@ ra.encode = function (host, buf, offset) {
   if (!buf) buf = Buffer.alloc(ra.encodingLength(host))
   if (!offset) offset = 0
 
-  buf[offset] = (4) >> 8; buf[offset + 1] = (4) & 0xff
+  buf[offset] = 0; buf[offset + 1] = 4
   offset += 2
   ip.v4.encode(host, buf, offset)
   ra.encode.bytes = 6
@@ -791,7 +791,7 @@ raaaa.encode = function (host, buf, offset) {
   if (!buf) buf = Buffer.alloc(raaaa.encodingLength(host))
   if (!offset) offset = 0
 
-  buf[offset] = (16) >> 8; buf[offset + 1] = (16) & 0xff
+  buf[offset] = 0; buf[offset + 1] = 16
   offset += 2
   ip.v6.encode(host, buf, offset)
   raaaa.encode.bytes = 18
