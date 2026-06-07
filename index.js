@@ -631,7 +631,7 @@ rcaa.decode = function (buf, offset) {
 
   const oldOffset = offset
   const data = {}
-  data.flags = buf.readUInt8(offset)
+  data.flags = buf[offset]
   offset += 1
   data.tag = string.decode(buf, offset)
   offset += string.decode.bytes
@@ -840,8 +840,8 @@ roption.decode = function (buf, offset) {
     case 8: // ECS
       option.family = buf.readUInt16BE(offset)
       offset += 2
-      option.sourcePrefixLength = buf.readUInt8(offset++)
-      option.scopePrefixLength = buf.readUInt8(offset++)
+      option.sourcePrefixLength = buf[offset++]
+      option.scopePrefixLength = buf[offset++]
       const padded = Buffer.alloc((option.family === 1) ? 4 : 16)
       buf.copy(padded, 0, offset, offset + len - 4)
       option.ip = ip.decode(padded)
@@ -969,11 +969,11 @@ rdnskey.decode = function (buf, offset) {
   offset += 2
   key.flags = buf.readUInt16BE(offset)
   offset += 2
-  if (buf.readUInt8(offset) !== rdnskey.PROTOCOL_DNSSEC) {
+  if (buf[offset] !== rdnskey.PROTOCOL_DNSSEC) {
     throw new Error('Protocol must be 3')
   }
   offset += 1
-  key.algorithm = buf.readUInt8(offset)
+  key.algorithm = buf[offset]
   offset += 1
   key.key = buf.subarray(offset, oldOffset + length + 2)
   offset += key.key.length
@@ -1035,9 +1035,9 @@ rrrsig.decode = function (buf, offset) {
   offset += 2
   sig.typeCovered = types.toString(buf.readUInt16BE(offset))
   offset += 2
-  sig.algorithm = buf.readUInt8(offset)
+  sig.algorithm = buf[offset]
   offset += 1
-  sig.labels = buf.readUInt8(offset)
+  sig.labels = buf[offset]
   offset += 1
   sig.originalTTL = buf.readUInt32BE(offset)
   offset += 4
@@ -1142,12 +1142,12 @@ typebitmap.decode = function (buf, offset, length) {
 
   var typelist = []
   while (offset - oldOffset < length) {
-    var window = buf.readUInt8(offset)
+    var window = buf[offset]
     offset += 1
-    var windowLength = buf.readUInt8(offset)
+    var windowLength = buf[offset]
     offset += 1
     for (var i = 0; i < windowLength; i++) {
-      var b = buf.readUInt8(offset + i)
+      var b = buf[offset + i]
       for (var j = 0; j < 8; j++) {
         if (b & (1 << (7 - j))) {
           var typeid = types.toString((window << 8) | (i << 3) | j)
@@ -1274,17 +1274,17 @@ rnsec3.decode = function (buf, offset) {
   var record = {}
   var length = buf.readUInt16BE(offset)
   offset += 2
-  record.algorithm = buf.readUInt8(offset)
+  record.algorithm = buf[offset]
   offset += 1
-  record.flags = buf.readUInt8(offset)
+  record.flags = buf[offset]
   offset += 1
   record.iterations = buf.readUInt16BE(offset)
   offset += 2
-  const saltLength = buf.readUInt8(offset)
+  const saltLength = buf[offset]
   offset += 1
   record.salt = buf.subarray(offset, offset + saltLength)
   offset += saltLength
-  const hashLength = buf.readUInt8(offset)
+  const hashLength = buf[offset]
   offset += 1
   record.nextDomain = buf.subarray(offset, offset + hashLength)
   offset += hashLength
@@ -1342,9 +1342,9 @@ rds.decode = function (buf, offset) {
   offset += 2
   digest.keyTag = buf.readUInt16BE(offset)
   offset += 2
-  digest.algorithm = buf.readUInt8(offset)
+  digest.algorithm = buf[offset]
   offset += 1
-  digest.digestType = buf.readUInt8(offset)
+  digest.digestType = buf[offset]
   offset += 1
   digest.digest = buf.subarray(offset, oldOffset + length + 2)
   offset += digest.digest.length
@@ -1509,11 +1509,11 @@ rtlsa.decode = function (buf, offset) {
   const cert = {}
   const length = buf.readUInt16BE(offset)
   offset += 2
-  cert.usage = buf.readUInt8(offset)
+  cert.usage = buf[offset]
   offset += 1
-  cert.selector = buf.readUInt8(offset)
+  cert.selector = buf[offset]
   offset += 1
-  cert.matchingType = buf.readUInt8(offset)
+  cert.matchingType = buf[offset]
   offset += 1
   cert.certificate = buf.subarray(offset, oldOffset + length + 2)
   offset += cert.certificate.length
@@ -1615,8 +1615,8 @@ answer.decode = function (buf, offset) {
   a.type = types.toString(typeNum)
   if (typeNum === 41) { // OPT type number - avoid string comparison
     a.udpPayloadSize = buf.readUInt16BE(offset + 2)
-    a.extendedRcode = buf.readUInt8(offset + 4)
-    a.ednsVersion = buf.readUInt8(offset + 5)
+    a.extendedRcode = buf[offset + 4]
+    a.ednsVersion = buf[offset + 5]
     a.flags = buf.readUInt16BE(offset + 6)
     a.flag_do = (a.flags & 0x8000) !== 0
     a.options = ropt.decode(buf, offset + 8)
