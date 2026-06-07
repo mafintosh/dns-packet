@@ -1329,7 +1329,7 @@ rnsec3.decode = function (buf, offset) {
   offset += 1
   record.flags = buf[offset]
   offset += 1
-  record.iterations = buf.readUInt16BE(offset)
+  record.iterations = (buf[offset] << 8) | buf[offset + 1]
   offset += 2
   const saltLength = buf[offset]
   offset += 1
@@ -1499,9 +1499,9 @@ rnaptr.decode = function (buf, offset) {
   const oldOffset = offset
   const data = {}
   offset += 2
-  data.order = buf.readUInt16BE(offset)
+  data.order = (buf[offset] << 8) | buf[offset + 1]
   offset += 2
-  data.preference = buf.readUInt16BE(offset)
+  data.preference = (buf[offset] << 8) | buf[offset + 1]
   offset += 2
   data.flags = string.decode(buf, offset)
   offset += string.decode.bytes
@@ -1558,7 +1558,7 @@ rtlsa.decode = function (buf, offset) {
   const oldOffset = offset
 
   const cert = {}
-  const length = buf.readUInt16BE(offset)
+  const length = (buf[offset] << 8) | buf[offset + 1]
   offset += 2
   cert.usage = buf[offset]
   offset += 1
@@ -1867,7 +1867,7 @@ exports.streamEncode = function (result) {
 exports.streamEncode.bytes = 0
 
 exports.streamDecode = function (sbuf) {
-  const len = sbuf.readUInt16BE(0)
+  const len = (sbuf[0] << 8) | sbuf[1]
   if (sbuf.byteLength < len + 2) {
     // not enough data
     return null
