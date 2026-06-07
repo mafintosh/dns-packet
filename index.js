@@ -482,13 +482,10 @@ rtxt.decode.bytes = 0
 rtxt.encodingLength = function (data) {
   if (!Array.isArray(data)) data = [data]
   let length = 2
-  data.forEach(function (buf) {
-    if (typeof buf === 'string') {
-      length += Buffer.byteLength(buf) + 1
-    } else {
-      length += buf.length + 1
-    }
-  })
+  for (let i = 0; i < data.length; i++) {
+    const b = data[i]
+    length += (typeof b === 'string' ? Buffer.byteLength(b) : b.length) + 1
+  }
   return length
 }
 
