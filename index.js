@@ -31,28 +31,50 @@ name.encode = function (str, buf, offset, { mail = false } = {}) {
   n = start > 0 || end < str.length ? n.substring(start, end) : n
 
   if (n.length) {
-    let list = []
     if (mail) {
       let localPart = ''
-      n.split('.').forEach(label => {
+      let pos = 0
+      while (pos < n.length) {
+        let dotPos = n.indexOf('.', pos)
+        if (dotPos === -1) dotPos = n.length
+        const label = n.substring(pos, dotPos)
+        pos = dotPos + 1
+
         if (label.charCodeAt(label.length - 1) === 0x5C) {
           localPart += (localPart.length ? '.' : '') + label.slice(0, -1)
+        } else if (localPart.length && !buf._nameLabels) {
+          // First non-escaped label after escaped labels
+          const combined = localPart + '.' + label
+          const len = buf.write(combined, offset + 1)
+          buf[offset] = len
+          offset += len + 1
+          localPart = ''
         } else {
-          if (list.length === 0 && localPart.length) {
-            list.push(localPart + '.' + label)
+          if (localPart.length) {
+            const combined = localPart + '.' + label
+            const len = buf.write(combined, offset + 1)
+            buf[offset] = len
+            offset += len + 1
+            localPart = ''
           } else {
-            list.push(label)
+            const len = buf.write(label, offset + 1)
+            buf[offset] = len
+            offset += len + 1
           }
         }
-      })
+      }
     } else {
-      list = n.split('.')
-    }
-
-    for (let i = 0; i < list.length; i++) {
-      const len = buf.write(list[i], offset + 1)
-      buf[offset] = len
-      offset += len + 1
+      // Direct label iteration without split
+      let pos = 0
+      while (pos < n.length) {
+        let dotPos = n.indexOf('.', pos)
+        if (dotPos === -1) dotPos = n.length
+        const label = n.substring(pos, dotPos)
+        pos = dotPos + 1
+        const len = buf.write(label, offset + 1)
+        buf[offset] = len
+        offset += len + 1
+      }
     }
   }
 
