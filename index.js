@@ -194,20 +194,24 @@ header.decode = function (buf, offset) {
   if (!offset) offset = 0
   if (buf.length < 12) throw new Error('Header must be 12 bytes')
   const flags = buf.readUInt16BE(offset + 2)
+  const id = buf.readUInt16BE(offset)
+
+  // Pre-compute all flag values in one pass
+  const isResponse = (flags & RESPONSE_FLAG) !== 0
 
   return {
-    id: buf.readUInt16BE(offset),
-    type: flags & RESPONSE_FLAG ? 'response' : 'query',
+    id: id,
+    type: isResponse ? 'response' : 'query',
     flags: flags & 32767,
-    flag_qr: ((flags >> 15) & 0x1) === 1,
-    opcode: opcodes.toString((flags >> 11) & 0xf),
-    flag_aa: ((flags >> 10) & 0x1) === 1,
-    flag_tc: ((flags >> 9) & 0x1) === 1,
-    flag_rd: ((flags >> 8) & 0x1) === 1,
-    flag_ra: ((flags >> 7) & 0x1) === 1,
-    flag_z: ((flags >> 6) & 0x1) === 1,
-    flag_ad: ((flags >> 5) & 0x1) === 1,
-    flag_cd: ((flags >> 4) & 0x1) === 1,
+    flag_qr: isResponse,
+    opcode: opcodes.toString((flags >>> 11) & 0xf),
+    flag_aa: (flags & 0x400) !== 0,
+    flag_tc: (flags & 0x200) !== 0,
+    flag_rd: (flags & 0x100) !== 0,
+    flag_ra: (flags & 0x80) !== 0,
+    flag_z: (flags & 0x40) !== 0,
+    flag_ad: (flags & 0x20) !== 0,
+    flag_cd: (flags & 0x10) !== 0,
     rcode: rcodes.toString(flags & 0xf),
     questions: new Array(buf.readUInt16BE(offset + 4)),
     answers: new Array(buf.readUInt16BE(offset + 6)),
