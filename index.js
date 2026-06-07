@@ -59,24 +59,7 @@ function asciiWrite(str, buf, offset) {
   return buf.write(str, offset)
 }
 
-// Helper: check if buffer region is pure ASCII and convert to string
-function asciiToString(buf, offset, len) {
-  let isAscii = true
-  for (let i = 0; i < len; i++) {
-    if (buf[offset + i] > 127) {
-      isAscii = false
-      break
-    }
-  }
-  if (isAscii) {
-    let s = ''
-    for (let i = 0; i < len; i++) {
-      s += String.fromCharCode(buf[offset + i])
-    }
-    return s
-  }
-  return buf.toString('utf-8', offset, offset + len)
-}
+
 
 const name = exports.name = {}
 
@@ -180,7 +163,7 @@ name.decode = function (buf, offset, opts) {
       if (totalLength > 254) {
         throw new Error('Cannot decode name (name too long)')
       }
-      let label = asciiToString(buf, offset, len)
+      let label = buf.toString("utf-8", offset, offset + len)
       if (mail) {
         label = label.replace(/\./g, '\\.')
       }
@@ -245,7 +228,7 @@ string.decode = function (buf, offset) {
   if (!offset) offset = 0
 
   const len = buf[offset]
-  const s = asciiToString(buf, offset + 1, len)
+  const s = buf.toString("utf-8", offset + 1, offset + 1 + len)
   string.decode.bytes = len + 1
   return s
 }
@@ -280,8 +263,8 @@ header.encode.bytes = 12
 header.decode = function (buf, offset) {
   if (!offset) offset = 0
   if (buf.length < 12) throw new Error('Header must be 12 bytes')
-  const flags = ((buf[offset + 2] << 8) | buf[offset + 2 + 1])
-  const id = ((buf[offset] << 8) | buf[offset + 1])
+  const flags = buf.readUInt16BE(offset + 2)
+  const id = buf.readUInt16BE(offset)
 
   // Pre-compute all flag values in one pass
   const isResponse = (flags & RESPONSE_FLAG) !== 0
@@ -300,10 +283,10 @@ header.decode = function (buf, offset) {
     flag_ad: (flags & 0x20) !== 0,
     flag_cd: (flags & 0x10) !== 0,
     rcode: rcodes.toString(flags & 0xf),
-    questions: new Array(((buf[offset + 4] << 8) | buf[offset + 4 + 1])),
-    answers: new Array(((buf[offset + 6] << 8) | buf[offset + 6 + 1])),
-    authorities: new Array(((buf[offset + 8] << 8) | buf[offset + 8 + 1])),
-    additionals: new Array(((buf[offset + 10] << 8) | buf[offset + 10 + 1]))
+    questions: new Array(buf.readUInt16BE(offset + 4)),
+    answers: new Array(buf.readUInt16BE(offset + 6)),
+    authorities: new Array(buf.readUInt16BE(offset + 8)),
+    additionals: new Array(buf.readUInt16BE(offset + 10))
   }
 }
 
@@ -331,7 +314,7 @@ runknown.encode.bytes = 0
 runknown.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  const len = ((buf[offset] << 8) | buf[offset + 1])
+  const len = buf.readUInt16BE(offset)
   const data = buf.subarray(offset + 2, offset + 2 + len)
   runknown.decode.bytes = len + 2
   return data
@@ -360,7 +343,7 @@ rns.encode.bytes = 0
 rns.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  const len = ((buf[offset] << 8) | buf[offset + 1])
+  const len = buf.readUInt16BE(offset)
   const dd = name.decode(buf, offset + 2)
 
   rns.decode.bytes = len + 2
@@ -408,21 +391,21 @@ rsoa.decode = function (buf, offset) {
 
   const oldOffset = offset
 
-  const data = Object.create(null)
+  const data = {}
   offset += 2
   data.mname = name.decode(buf, offset)
   offset += name.decode.bytes
   data.rname = name.decode(buf, offset, { mail: true })
   offset += name.decode.bytes
-  data.serial = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
+  data.serial = buf.readUInt32BE(offset)
   offset += 4
-  data.refresh = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
+  data.refresh = buf.readUInt32BE(offset)
   offset += 4
-  data.retry = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
+  data.retry = buf.readUInt32BE(offset)
   offset += 4
-  data.expire = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
+  data.expire = buf.readUInt32BE(offset)
   offset += 4
-  data.minimum = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
+  data.minimum = buf.readUInt32BE(offset)
   offset += 4
 
   rsoa.decode.bytes = offset - oldOffset
@@ -467,7 +450,7 @@ rtxt.encode.bytes = 0
 rtxt.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
-  let remaining = ((buf[offset] << 8) | buf[offset + 1])
+  let remaining = buf.readUInt16BE(offset)
   offset += 2
 
   // Estimate array size from remaining bytes (worst case: 1 byte per TXT entry)
@@ -531,7 +514,7 @@ rnull.encode.bytes = 0
 rnull.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
-  const len = ((buf[offset] << 8) | buf[offset + 1])
+  const len = buf.readUInt16BE(offset)
 
   offset += 2
 
@@ -573,7 +556,7 @@ rhinfo.decode = function (buf, offset) {
 
   const oldOffset = offset
 
-  const data = Object.create(null)
+  const data = {}
   offset += 2
   data.cpu = string.decode(buf, offset)
   offset += string.decode.bytes
@@ -642,12 +625,12 @@ rsrv.encode.bytes = 0
 rsrv.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  const len = ((buf[offset] << 8) | buf[offset + 1])
+  const len = buf.readUInt16BE(offset)
 
-  const data = Object.create(null)
-  data.priority = ((buf[offset + 2] << 8) | buf[offset + 2 + 1])
-  data.weight = ((buf[offset + 4] << 8) | buf[offset + 4 + 1])
-  data.port = ((buf[offset + 6] << 8) | buf[offset + 6 + 1])
+  const data = {}
+  data.priority = buf.readUInt16BE(offset + 2)
+  data.weight = buf.readUInt16BE(offset + 4)
+  data.port = buf.readUInt16BE(offset + 6)
   data.target = name.decode(buf, offset + 8)
 
   rsrv.decode.bytes = len + 2
@@ -692,11 +675,11 @@ rcaa.encode.bytes = 0
 rcaa.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  const len = ((buf[offset] << 8) | buf[offset + 1])
+  const len = buf.readUInt16BE(offset)
   offset += 2
 
   const oldOffset = offset
-  const data = Object.create(null)
+  const data = {}
   data.flags = buf[offset]
   offset += 1
   data.tag = string.decode(buf, offset)
@@ -741,9 +724,9 @@ rmx.decode = function (buf, offset) {
 
   const oldOffset = offset
 
-  const data = Object.create(null)
+  const data = {}
   offset += 2
-  data.preference = ((buf[offset] << 8) | buf[offset + 1])
+  data.preference = buf.readUInt16BE(offset)
   offset += 2
   data.exchange = name.decode(buf, offset)
   offset += name.decode.bytes
@@ -894,17 +877,17 @@ roption.encode.bytes = 0
 
 roption.decode = function (buf, offset) {
   if (!offset) offset = 0
-  const option = Object.create(null)
-  option.code = ((buf[offset] << 8) | buf[offset + 1])
+  const option = {}
+  option.code = buf.readUInt16BE(offset)
   option.type = optioncodes.toString(option.code)
   offset += 2
-  const len = ((buf[offset] << 8) | buf[offset + 1])
+  const len = buf.readUInt16BE(offset)
   offset += 2
   option.data = buf.subarray(offset, offset + len)
   switch (option.code) {
     // case 3: NSID.  No decode makes sense.
     case 8: // ECS
-      option.family = ((buf[offset] << 8) | buf[offset + 1])
+      option.family = buf.readUInt16BE(offset)
       offset += 2
       option.sourcePrefixLength = buf[offset++]
       option.scopePrefixLength = buf[offset++]
@@ -915,14 +898,14 @@ roption.decode = function (buf, offset) {
     // case 12: Padding.  No decode makes sense.
     case 11: // KEEP-ALIVE
       if (len > 0) {
-        option.timeout = ((buf[offset] << 8) | buf[offset + 1])
+        option.timeout = buf.readUInt16BE(offset)
         offset += 2
       }
       break
     case 14:
       option.tags = []
       for (let i = 0; i < len; i += 2) {
-        option.tags.push(((buf[offset] << 8) | buf[offset + 1]))
+        option.tags.push(buf.readUInt16BE(offset))
         offset += 2
       }
     // don't worry about default.  caller will use data if desired
@@ -975,7 +958,7 @@ ropt.decode = function (buf, offset) {
   const oldOffset = offset
 
   const options = []
-  let rdlen = ((buf[offset] << 8) | buf[offset + 1])
+  let rdlen = buf.readUInt16BE(offset)
   offset += 2
   let o = 0
   while (rdlen > 0) {
@@ -1030,10 +1013,10 @@ rdnskey.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var key = Object.create(null)
-  var length = ((buf[offset] << 8) | buf[offset + 1])
+  var key = {}
+  var length = buf.readUInt16BE(offset)
   offset += 2
-  key.flags = ((buf[offset] << 8) | buf[offset + 1])
+  key.flags = buf.readUInt16BE(offset)
   offset += 2
   if (buf[offset] !== rdnskey.PROTOCOL_DNSSEC) {
     throw new Error('Protocol must be 3')
@@ -1096,22 +1079,22 @@ rrrsig.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var sig = Object.create(null)
-  var length = ((buf[offset] << 8) | buf[offset + 1])
+  var sig = {}
+  var length = buf.readUInt16BE(offset)
   offset += 2
-  sig.typeCovered = types.toString(((buf[offset] << 8) | buf[offset + 1]))
+  sig.typeCovered = types.toString(buf.readUInt16BE(offset))
   offset += 2
   sig.algorithm = buf[offset]
   offset += 1
   sig.labels = buf[offset]
   offset += 1
-  sig.originalTTL = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
+  sig.originalTTL = buf.readUInt32BE(offset)
   offset += 4
-  sig.expiration = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
+  sig.expiration = buf.readUInt32BE(offset)
   offset += 4
-  sig.inception = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
+  sig.inception = buf.readUInt32BE(offset)
   offset += 4
-  sig.keyTag = ((buf[offset] << 8) | buf[offset + 1])
+  sig.keyTag = buf.readUInt16BE(offset)
   offset += 2
   sig.signersName = name.decode(buf, offset)
   offset += name.decode.bytes
@@ -1152,7 +1135,7 @@ rrp.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  const data = Object.create(null)
+  const data = {}
   offset += 2
   data.mbox = name.decode(buf, offset, { mail: true }) || '.'
   offset += name.decode.bytes
@@ -1271,8 +1254,8 @@ rnsec.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var record = Object.create(null)
-  var length = ((buf[offset] << 8) | buf[offset + 1])
+  var record = {}
+  var length = buf.readUInt16BE(offset)
   offset += 2
   record.nextDomain = name.decode(buf, offset)
   offset += name.decode.bytes
@@ -1337,14 +1320,14 @@ rnsec3.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var record = Object.create(null)
-  var length = ((buf[offset] << 8) | buf[offset + 1])
+  var record = {}
+  var length = buf.readUInt16BE(offset)
   offset += 2
   record.algorithm = buf[offset]
   offset += 1
   record.flags = buf[offset]
   offset += 1
-  record.iterations = ((buf[offset] << 8) | buf[offset + 1])
+  record.iterations = buf.readUInt16BE(offset)
   offset += 2
   const saltLength = buf[offset]
   offset += 1
@@ -1403,10 +1386,10 @@ rds.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var digest = Object.create(null)
-  var length = ((buf[offset] << 8) | buf[offset + 1])
+  var digest = {}
+  var length = buf.readUInt16BE(offset)
   offset += 2
-  digest.keyTag = ((buf[offset] << 8) | buf[offset + 1])
+  digest.keyTag = buf.readUInt16BE(offset)
   offset += 2
   digest.algorithm = buf[offset]
   offset += 1
@@ -1512,11 +1495,11 @@ rnaptr.encode.bytes = 0
 rnaptr.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
-  const data = Object.create(null)
+  const data = {}
   offset += 2
-  data.order = ((buf[offset] << 8) | buf[offset + 1])
+  data.order = buf.readUInt16BE(offset)
   offset += 2
-  data.preference = ((buf[offset] << 8) | buf[offset + 1])
+  data.preference = buf.readUInt16BE(offset)
   offset += 2
   data.flags = string.decode(buf, offset)
   offset += string.decode.bytes
@@ -1572,8 +1555,8 @@ rtlsa.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  const cert = Object.create(null)
-  const length = ((buf[offset] << 8) | buf[offset + 1])
+  const cert = {}
+  const length = buf.readUInt16BE(offset)
   offset += 2
   cert.usage = buf[offset]
   offset += 1
@@ -1705,24 +1688,24 @@ answer.encode.bytes = 0
 answer.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  const a = Object.create(null)
+  const a = {}
   const oldOffset = offset
 
   a.name = name.decode(buf, offset)
   offset += name.decode.bytes
-  const typeNum = ((buf[offset] << 8) | buf[offset + 1])
+  const typeNum = buf.readUInt16BE(offset)
   a.type = types.toString(typeNum)
   if (typeNum === TYPE_OPT) { // OPT type number - avoid string comparison
-    a.udpPayloadSize = ((buf[offset + 2] << 8) | buf[offset + 2 + 1])
+    a.udpPayloadSize = buf.readUInt16BE(offset + 2)
     a.extendedRcode = buf[offset + 4]
     a.ednsVersion = buf[offset + 5]
-    a.flags = ((buf[offset + 6] << 8) | buf[offset + 6 + 1])
+    a.flags = buf.readUInt16BE(offset + 6)
     a.flag_do = (a.flags & 0x8000) !== 0
     a.options = ropt.decode(buf, offset + 8)
     offset += 8 + ropt.decode.bytes
   } else {
-    const klass = ((buf[offset + 2] << 8) | buf[offset + 2 + 1])
-    a.ttl = ((buf[offset + 4] << 24) | (buf[offset + 4 + 1] << 16) | (buf[offset + 4 + 2] << 8) | buf[offset + 4 + 3])
+    const klass = buf.readUInt16BE(offset + 2)
+    a.ttl = buf.readUInt32BE(offset + 4)
 
     a.class = classes.toString(klass & NOT_FLUSH_MASK)
     a.flush = (klass & FLUSH_MASK) !== 0
@@ -1777,10 +1760,10 @@ question.decode = function (buf, offset) {
   q.name = name.decode(buf, offset)
   offset += name.decode.bytes
 
-  q.type = types.toString(((buf[offset] << 8) | buf[offset + 1]))
+  q.type = types.toString(buf.readUInt16BE(offset))
   offset += 2
 
-  q.class = classes.toString(((buf[offset] << 8) | buf[offset + 1]))
+  q.class = classes.toString(buf.readUInt16BE(offset))
   offset += 2
 
   const qu = !!(q.class & QU_MASK)
@@ -1880,7 +1863,7 @@ exports.streamEncode = function (result) {
 exports.streamEncode.bytes = 0
 
 exports.streamDecode = function (sbuf) {
-  const len = ((sbuf[0] << 8) | sbuf[0 + 1])
+  const len = sbuf.readUInt16BE(0)
   if (sbuf.byteLength < len + 2) {
     // not enough data
     return null
