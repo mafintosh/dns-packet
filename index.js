@@ -23,13 +23,19 @@ name.encode = function (str, buf, offset, { mail = false } = {}) {
   const oldOffset = offset
 
   // strip leading and trailing .
-  const n = str.replace(/^\.|\.$/gm, '')
+  let n = str
+  let start = 0
+  let end = n.length
+  if (end > 0 && n.charCodeAt(0) === 0x2E) start = 1
+  if (end > start && n.charCodeAt(end - 1) === 0x2E) end--
+  n = start > 0 || end < str.length ? n.substring(start, end) : n
+
   if (n.length) {
     let list = []
     if (mail) {
       let localPart = ''
       n.split('.').forEach(label => {
-        if (label.endsWith('\\')) {
+        if (label.charCodeAt(label.length - 1) === 0x5C) {
           localPart += (localPart.length ? '.' : '') + label.slice(0, -1)
         } else {
           if (list.length === 0 && localPart.length) {
@@ -119,7 +125,11 @@ name.decode.bytes = 0
 
 name.encodingLength = function (n) {
   if (n === '.' || n === '..') return 1
-  return Buffer.byteLength(n.replace(/^\.|\.$/gm, '')) + 2
+  let start = 0
+  let end = n.length
+  if (end > 0 && n.charCodeAt(0) === 0x2E) start = 1
+  if (end > start && n.charCodeAt(end - 1) === 0x2E) end--
+  return Buffer.byteLength(start > 0 || end < n.length ? n.substring(start, end) : n) + 2
 }
 
 const string = {}
