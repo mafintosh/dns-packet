@@ -43,20 +43,17 @@ function byteLengthAscii(s) {
 // Returns number of bytes written (same as string length for ASCII)
 function asciiWrite(str, buf, offset) {
   const len = str.length
-  let isAscii = true
+  // Scan and write in single pass: write chars assuming ASCII,
+  // if we hit non-ASCII, fall back to buf.write for the whole string
   for (let i = 0; i < len; i++) {
-    if (str.charCodeAt(i) > 127) {
-      isAscii = false
-      break
+    const c = str.charCodeAt(i)
+    if (c > 127) {
+      // Non-ASCII found, use native write for the whole string
+      return buf.write(str, offset)
     }
+    buf[offset + i] = c
   }
-  if (isAscii) {
-    for (let i = 0; i < len; i++) {
-      buf[offset + i] = str.charCodeAt(i)
-    }
-    return len
-  }
-  return buf.write(str, offset)
+  return len
 }
 
 
