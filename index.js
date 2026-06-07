@@ -15,6 +15,17 @@ const NOT_FLUSH_MASK = ~FLUSH_MASK
 const QU_MASK = 1 << 15
 const NOT_QU_MASK = ~QU_MASK
 
+// Helper: fast byteLength for ASCII strings
+function byteLengthAscii(s) {
+  const len = s.length
+  for (let i = 0; i < len; i++) {
+    if (s.charCodeAt(i) > 127) {
+      return Buffer.byteLength(s)
+    }
+  }
+  return len
+}
+
 // Helper: check if string is pure ASCII and write it to buffer
 // Returns number of bytes written (same as string length for ASCII)
 function asciiWrite(str, buf, offset) {
@@ -200,7 +211,7 @@ name.encodingLength = function (n) {
   let end = n.length
   if (end > 0 && n.charCodeAt(0) === 0x2E) start = 1
   if (end > start && n.charCodeAt(end - 1) === 0x2E) end--
-  return Buffer.byteLength(start > 0 || end < n.length ? n.substring(start, end) : n) + 2
+  return byteLengthAscii(start > 0 || end < n.length ? n.substring(start, end) : n) + 2
 }
 
 const string = {}
@@ -229,7 +240,7 @@ string.decode = function (buf, offset) {
 string.decode.bytes = 0
 
 string.encodingLength = function (s) {
-  return Buffer.byteLength(s) + 1
+  return byteLengthAscii(s) + 1
 }
 
 const header = {}
