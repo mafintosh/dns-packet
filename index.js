@@ -1729,7 +1729,10 @@ answer.encodingLength = function (a) {
 const question = exports.question = {}
 
 question.encode = function (q, buf, offset) {
-  if (!buf) buf = Buffer.alloc(question.encodingLength(q))
+  if (!buf) {
+    const nameLen = name.encodingLength(q.name)
+    buf = Buffer.alloc(nameLen + 4)
+  }
   if (!offset) offset = 0
 
   const oldOffset = offset
