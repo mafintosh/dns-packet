@@ -1,23 +1,31 @@
 'use strict'
 
-exports.toString = function (klass) {
-  switch (klass) {
-    case 1: return 'IN'
-    case 2: return 'CS'
-    case 3: return 'CH'
-    case 4: return 'HS'
-    case 255: return 'ANY'
-  }
-  return 'UNKNOWN_' + klass
+const codeToString = {}
+const stringToCode = {}
+
+function toString (klass) {
+  return codeToString[klass] || ('UNKNOWN_' + klass)
 }
 
-exports.toClass = function (name) {
-  switch (name.toUpperCase()) {
-    case 'IN': return 1
-    case 'CS': return 2
-    case 'CH': return 3
-    case 'HS': return 4
-    case 'ANY': return 255
-  }
+function toClass (name) {
+  if (typeof name === 'number') return name
+  const upper = name.toUpperCase()
+  if (stringToCode[upper] !== undefined) return stringToCode[upper]
   return 0
 }
+
+const classes = [
+  [1, 'IN'],
+  [2, 'CS'],
+  [3, 'CH'],
+  [4, 'HS'],
+  [255, 'ANY']
+]
+
+for (const [num, str] of classes) {
+  codeToString[num] = str
+  stringToCode[str] = num
+}
+
+exports.toString = toString
+exports.toClass = toClass
