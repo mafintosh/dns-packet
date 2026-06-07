@@ -263,8 +263,9 @@ header.encode.bytes = 12
 header.decode = function (buf, offset) {
   if (!offset) offset = 0
   if (buf.length < 12) throw new Error('Header must be 12 bytes')
-  const flags = buf.readUInt16BE(offset + 2)
-  const id = buf.readUInt16BE(offset)
+  // Manual reads instead of readUInt16BE for speed
+  const id = (buf[offset] << 8) | buf[offset + 1]
+  const flags = (buf[offset + 2] << 8) | buf[offset + 3]
 
   // Pre-compute all flag values in one pass
   const isResponse = (flags & RESPONSE_FLAG) !== 0
@@ -283,10 +284,10 @@ header.decode = function (buf, offset) {
     flag_ad: (flags & 0x20) !== 0,
     flag_cd: (flags & 0x10) !== 0,
     rcode: rcodes.toString(flags & 0xf),
-    questions: new Array(buf.readUInt16BE(offset + 4)),
-    answers: new Array(buf.readUInt16BE(offset + 6)),
-    authorities: new Array(buf.readUInt16BE(offset + 8)),
-    additionals: new Array(buf.readUInt16BE(offset + 10))
+    questions: new Array((buf[offset + 4] << 8) | buf[offset + 5]),
+    answers: new Array((buf[offset + 6] << 8) | buf[offset + 7]),
+    authorities: new Array((buf[offset + 8] << 8) | buf[offset + 9]),
+    additionals: new Array((buf[offset + 10] << 8) | buf[offset + 11])
   }
 }
 
@@ -1669,7 +1670,7 @@ answer.encode = function (a, buf, offset) {
     let klass = classes.toClass(a.class === undefined ? 'IN' : a.class)
     if (a.flush) klass |= FLUSH_MASK // the 1st bit of the class is the flush bit
     buf[offset + 2] = (klass) >> 8; buf[offset + 2 + 1] = (klass) & 0xff
-    buf[offset + 4] = (a.ttl || 0) >>> 24; buf[offset + 4 + 1] = ((a.ttl || 0) >>> 16) & 0xff; buf[offset + 4 + 2] = ((a.ttl || 0) >>> 8) & 0xff; buf[offset + 4 + 3] = (a.ttl || 0) & 0xff
+    buf[offset + 4] = (a.ttl || 0) >>> 24; buf[offset + 5] = ((a.ttl || 0) >>> 16) & 0xff; buf[offset + 6] = ((a.ttl || 0) >>> 8) & 0xff; buf[offset + 7] = (a.ttl || 0) & 0xff
 
     offset += 8
     const enc = rencByTypeNum(typeNum)

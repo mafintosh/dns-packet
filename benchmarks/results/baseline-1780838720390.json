@@ -1,0 +1,137 @@
+{
+  "timestamp": "2026-06-07T13:25:20.390Z",
+  "nodeVersion": "v24.16.0",
+  "platform": "linux",
+  "arch": "x64",
+  "iterations": 100000,
+  "results": {
+    "encodeSimpleQuery": {
+      "name": "encode: simple A query",
+      "iterations": 100000,
+      "totalMs": 24.75,
+      "avgUs": 0.25,
+      "opsPerSec": 4040006
+    },
+    "encodeComplexResponse": {
+      "name": "encode: complex response (A+AAAA+MX+NS+TXT+SOA+OPT)",
+      "iterations": 100000,
+      "totalMs": 334.36,
+      "avgUs": 3.34,
+      "opsPerSec": 299075
+    },
+    "encodeSrvQuery": {
+      "name": "encode: SRV query",
+      "iterations": 100000,
+      "totalMs": 31.07,
+      "avgUs": 0.31,
+      "opsPerSec": 3218786
+    },
+    "encodeSrvResponse": {
+      "name": "encode: SRV response",
+      "iterations": 100000,
+      "totalMs": 214.56,
+      "avgUs": 2.15,
+      "opsPerSec": 466063
+    },
+    "encodeCaaResponse": {
+      "name": "encode: CAA response",
+      "iterations": 100000,
+      "totalMs": 132.25,
+      "avgUs": 1.32,
+      "opsPerSec": 756139
+    },
+    "decodeSimpleQuery": {
+      "name": "decode: simple A query",
+      "iterations": 100000,
+      "totalMs": 33.46,
+      "avgUs": 0.33,
+      "opsPerSec": 2988634
+    },
+    "decodeComplexResponse": {
+      "name": "decode: complex response (A+AAAA+MX+NS+TXT+SOA+OPT)",
+      "iterations": 100000,
+      "totalMs": 378.24,
+      "avgUs": 3.78,
+      "opsPerSec": 264380
+    },
+    "decodeSrvQuery": {
+      "name": "decode: SRV query",
+      "iterations": 100000,
+      "totalMs": 42.94,
+      "avgUs": 0.43,
+      "opsPerSec": 2328606
+    },
+    "decodeSrvResponse": {
+      "name": "decode: SRV response",
+      "iterations": 100000,
+      "totalMs": 148.16,
+      "avgUs": 1.48,
+      "opsPerSec": 674968
+    },
+    "decodeCaaResponse": {
+      "name": "decode: CAA response",
+      "iterations": 100000,
+      "totalMs": 60.32,
+      "avgUs": 0.6,
+      "opsPerSec": 1657691
+    },
+    "roundtripSimpleQuery": {
+      "name": "roundtrip: simple A query",
+      "iterations": 100000,
+      "totalMs": 54.21,
+      "avgUs": 0.54,
+      "opsPerSec": 1844705
+    },
+    "roundtripComplexResponse": {
+      "name": "roundtrip: complex response",
+      "iterations": 100000,
+      "totalMs": 741.72,
+      "avgUs": 7.42,
+      "opsPerSec": 134822
+    },
+    "nameEncode": {
+      "name": "name.encode: example.com",
+      "iterations": 100000,
+      "totalMs": 11.83,
+      "avgUs": 0.12,
+      "opsPerSec": 8455962
+    },
+    "nameDecode": {
+      "name": "name.decode: www.subdomain.example.com",
+      "iterations": 100000,
+      "totalMs": 24.31,
+      "avgUs": 0.24,
+      "opsPerSec": 4113892
+    },
+    "nameEncodingLength": {
+      "name": "name.encodingLength: example.com",
+      "iterations": 1000000,
+      "totalMs": 12.37,
+      "avgUs": 0.01,
+      "opsPerSec": 80841894
+    },
+    "stressBatch": {
+      "10": {
+        "name": "stress: encode+decode 10 unique queries",
+        "iterations": 10000,
+        "totalMs": 66.65,
+        "avgUs": 6.67,
+        "opsPerSec": 150036
+      },
+      "100": {
+        "name": "stress: encode+decode 100 unique queries",
+        "iterations": 1000,
+        "totalMs": 66.61,
+        "avgUs": 66.61,
+        "opsPerSec": 15013
+      },
+      "1000": {
+        "name": "stress: encode+decode 1000 unique queries",
+        "iterations": 100,
+        "totalMs": 68.07,
+        "avgUs": 680.72,
+        "opsPerSec": 1469
+      }
+    }
+  }
+}
