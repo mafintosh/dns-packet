@@ -1762,14 +1762,15 @@ question.decode = function (buf, offset) {
   q.name = name.decode(buf, offset)
   offset += name.decode.bytes
 
-  q.type = types.toString(buf.readUInt16BE(offset))
+  q.type = types.toString((buf[offset] << 8) | buf[offset + 1])
   offset += 2
 
-  q.class = classes.toString(buf.readUInt16BE(offset))
+  const rawClass = (buf[offset] << 8) | buf[offset + 1]
+  q.class = classes.toString(rawClass)
   offset += 2
 
-  const qu = !!(q.class & QU_MASK)
-  if (qu) q.class &= NOT_QU_MASK
+  const qu = !!(rawClass & QU_MASK)
+  if (qu) q.class = classes.toString(rawClass & NOT_QU_MASK)
 
   question.decode.bytes = offset - oldOffset
   return q
