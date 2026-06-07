@@ -419,10 +419,15 @@ rsoa.encodingLength = function (data) {
 const rtxt = exports.txt = {}
 
 rtxt.encode = function (data, buf, offset) {
-  if (!Array.isArray(data)) data = [data]
-  for (let i = 0; i < data.length; i++) {
-    if (typeof data[i] === 'string') {
-      data[i] = Buffer.from(data[i])
+  // Fast path: already an array of Buffers (most common case from decode/re-encode)
+  if (!Array.isArray(data)) {
+    data = [typeof data === 'string' ? Buffer.from(data) : data]
+  } else {
+    // Convert strings to Buffers in-place only if needed
+    for (let i = 0; i < data.length; i++) {
+      if (typeof data[i] === 'string') {
+        data[i] = Buffer.from(data[i])
+      }
     }
   }
 
