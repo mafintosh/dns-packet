@@ -1724,11 +1724,6 @@ exports.encode = function (result, buf, offset) {
 
   exports.encode.bytes = offset - oldOffset
 
-  // just a quick sanity check
-  if (allocing && exports.encode.bytes !== buf.length) {
-    return buf.slice(0, exports.encode.bytes)
-  }
-
   return buf
 }
 
