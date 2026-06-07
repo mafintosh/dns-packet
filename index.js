@@ -395,7 +395,7 @@ rsoa.decode = function (buf, offset) {
 
   const oldOffset = offset
 
-  const data = {}
+  const data = Object.create(null)
   offset += 2
   data.mname = name.decode(buf, offset)
   offset += name.decode.bytes
@@ -559,7 +559,7 @@ rhinfo.decode = function (buf, offset) {
 
   const oldOffset = offset
 
-  const data = {}
+  const data = Object.create(null)
   offset += 2
   data.cpu = string.decode(buf, offset)
   offset += string.decode.bytes
@@ -630,7 +630,7 @@ rsrv.decode = function (buf, offset) {
 
   const len = ((buf[offset] << 8) | buf[offset + 1])
 
-  const data = {}
+  const data = Object.create(null)
   data.priority = ((buf[offset + 2] << 8) | buf[offset + 2 + 1])
   data.weight = ((buf[offset + 4] << 8) | buf[offset + 4 + 1])
   data.port = ((buf[offset + 6] << 8) | buf[offset + 6 + 1])
@@ -682,7 +682,7 @@ rcaa.decode = function (buf, offset) {
   offset += 2
 
   const oldOffset = offset
-  const data = {}
+  const data = Object.create(null)
   data.flags = buf[offset]
   offset += 1
   data.tag = string.decode(buf, offset)
@@ -727,7 +727,7 @@ rmx.decode = function (buf, offset) {
 
   const oldOffset = offset
 
-  const data = {}
+  const data = Object.create(null)
   offset += 2
   data.preference = ((buf[offset] << 8) | buf[offset + 1])
   offset += 2
@@ -880,7 +880,7 @@ roption.encode.bytes = 0
 
 roption.decode = function (buf, offset) {
   if (!offset) offset = 0
-  const option = {}
+  const option = Object.create(null)
   option.code = ((buf[offset] << 8) | buf[offset + 1])
   option.type = optioncodes.toString(option.code)
   offset += 2
@@ -1016,7 +1016,7 @@ rdnskey.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var key = {}
+  var key = Object.create(null)
   var length = ((buf[offset] << 8) | buf[offset + 1])
   offset += 2
   key.flags = ((buf[offset] << 8) | buf[offset + 1])
@@ -1082,7 +1082,7 @@ rrrsig.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var sig = {}
+  var sig = Object.create(null)
   var length = ((buf[offset] << 8) | buf[offset + 1])
   offset += 2
   sig.typeCovered = types.toString(((buf[offset] << 8) | buf[offset + 1]))
@@ -1138,7 +1138,7 @@ rrp.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  const data = {}
+  const data = Object.create(null)
   offset += 2
   data.mbox = name.decode(buf, offset, { mail: true }) || '.'
   offset += name.decode.bytes
@@ -1257,7 +1257,7 @@ rnsec.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var record = {}
+  var record = Object.create(null)
   var length = ((buf[offset] << 8) | buf[offset + 1])
   offset += 2
   record.nextDomain = name.decode(buf, offset)
@@ -1323,7 +1323,7 @@ rnsec3.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var record = {}
+  var record = Object.create(null)
   var length = ((buf[offset] << 8) | buf[offset + 1])
   offset += 2
   record.algorithm = buf[offset]
@@ -1389,7 +1389,7 @@ rds.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var digest = {}
+  var digest = Object.create(null)
   var length = ((buf[offset] << 8) | buf[offset + 1])
   offset += 2
   digest.keyTag = ((buf[offset] << 8) | buf[offset + 1])
@@ -1498,7 +1498,7 @@ rnaptr.encode.bytes = 0
 rnaptr.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
-  const data = {}
+  const data = Object.create(null)
   offset += 2
   data.order = ((buf[offset] << 8) | buf[offset + 1])
   offset += 2
@@ -1558,7 +1558,7 @@ rtlsa.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  const cert = {}
+  const cert = Object.create(null)
   const length = ((buf[offset] << 8) | buf[offset + 1])
   offset += 2
   cert.usage = buf[offset]
@@ -1658,7 +1658,7 @@ answer.encode.bytes = 0
 answer.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  const a = {}
+  const a = Object.create(null)
   const oldOffset = offset
 
   a.name = name.decode(buf, offset)
