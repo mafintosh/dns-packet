@@ -35,6 +35,25 @@ function asciiWrite(str, buf, offset) {
   return buf.write(str, offset)
 }
 
+// Helper: check if buffer region is pure ASCII and convert to string
+function asciiToString(buf, offset, len) {
+  let isAscii = true
+  for (let i = 0; i < len; i++) {
+    if (buf[offset + i] > 127) {
+      isAscii = false
+      break
+    }
+  }
+  if (isAscii) {
+    let s = ''
+    for (let i = 0; i < len; i++) {
+      s += String.fromCharCode(buf[offset + i])
+    }
+    return s
+  }
+  return buf.toString('utf-8', offset, offset + len)
+}
+
 const name = exports.name = {}
 
 name.encode = function (str, buf, offset, opts) {
@@ -137,7 +156,7 @@ name.decode = function (buf, offset, opts) {
       if (totalLength > 254) {
         throw new Error('Cannot decode name (name too long)')
       }
-      let label = buf.toString('utf-8', offset, offset + len)
+      let label = asciiToString(buf, offset, len)
       if (mail) {
         label = label.replace(/\./g, '\\.')
       }
