@@ -1579,9 +1579,41 @@ rtlsa.encodingLength = function (cert) {
   return 5 + Buffer.byteLength(cert.certificate)
 }
 
+// Pre-built lookup map for record type number -> encoder
+const rencByNum = {
+  1: ra,        // A
+  12: rptr,     // PTR
+  5: rcname,    // CNAME
+  39: rdname,   // DNAME
+  16: rtxt,     // TXT
+  10: rnull,    // NULL
+  28: raaaa,    // AAAA
+  33: rsrv,     // SRV
+  13: rhinfo,   // HINFO
+  257: rcaa,    // CAA
+  2: rns,       // NS
+  6: rsoa,      // SOA
+  15: rmx,      // MX
+  41: ropt,     // OPT
+  48: rdnskey,  // DNSKEY
+  46: rrrsig,   // RRSIG
+  17: rrp,      // RP
+  47: rnsec,    // NSEC
+  50: rnsec3,   // NSEC3
+  44: rsshfp,   // SSHFP
+  43: rds,      // DS
+  35: rnaptr,   // NAPTR
+  52: rtlsa     // TLSA
+}
+
 const renc = exports.record = function (type) {
   const r = rencMap[type.toUpperCase()]
   return r || runknown
+}
+
+// Get encoder by type number (avoids string conversion + toUpperCase)
+function rencByTypeNum(num) {
+  return rencByNum[num] || runknown
 }
 
 // Pre-built lookup map for record type -> encoder
@@ -1644,7 +1676,7 @@ answer.encode = function (a, buf, offset) {
     buf[offset + 4] = (a.ttl || 0) >>> 24; buf[offset + 4 + 1] = ((a.ttl || 0) >>> 16) & 0xff; buf[offset + 4 + 2] = ((a.ttl || 0) >>> 8) & 0xff; buf[offset + 4 + 3] = (a.ttl || 0) & 0xff
 
     offset += 8
-    const enc = renc(a.type)
+    const enc = rencByTypeNum(typeNum)
     enc.encode(a.data, buf, offset)
     offset += enc.encode.bytes
   }
@@ -1680,7 +1712,7 @@ answer.decode = function (buf, offset) {
     a.class = classes.toString(klass & NOT_FLUSH_MASK)
     a.flush = (klass & FLUSH_MASK) !== 0
 
-    const enc = renc(a.type)
+    const enc = rencByTypeNum(typeNum)
     a.data = enc.decode(buf, offset + 8)
     offset += 8 + enc.decode.bytes
   }
@@ -1693,7 +1725,7 @@ answer.decode.bytes = 0
 
 answer.encodingLength = function (a) {
   const data = (a.data !== null && a.data !== undefined) ? a.data : a.options
-  return name.encodingLength(a.name) + 8 + renc(a.type).encodingLength(data)
+  return name.encodingLength(a.name) + 8 + rencByTypeNum(types.toType(a.type)).encodingLength(data)
 }
 
 const question = exports.question = {}
