@@ -267,7 +267,7 @@ runknown.decode = function (buf, offset) {
   if (!offset) offset = 0
 
   const len = buf.readUInt16BE(offset)
-  const data = buf.slice(offset + 2, offset + 2 + len)
+  const data = buf.subarray(offset + 2, offset + 2 + len)
   runknown.decode.bytes = len + 2
   return data
 }
@@ -415,7 +415,7 @@ rtxt.decode = function (buf, offset) {
     if (remaining < len) {
       throw new Error('Buffer overflow')
     }
-    data.push(buf.slice(offset, offset + len))
+    data.push(buf.subarray(offset, offset + len))
     offset += len
     remaining -= len
   }
@@ -469,7 +469,7 @@ rnull.decode = function (buf, offset) {
 
   offset += 2
 
-  const data = buf.slice(offset, offset + len)
+  const data = buf.subarray(offset, offset + len)
   offset += len
 
   rnull.decode.bytes = offset - oldOffset
@@ -834,7 +834,7 @@ roption.decode = function (buf, offset) {
   offset += 2
   const len = buf.readUInt16BE(offset)
   offset += 2
-  option.data = buf.slice(offset, offset + len)
+  option.data = buf.subarray(offset, offset + len)
   switch (option.code) {
     // case 3: NSID.  No decode makes sense.
     case 8: // ECS
@@ -975,7 +975,7 @@ rdnskey.decode = function (buf, offset) {
   offset += 1
   key.algorithm = buf.readUInt8(offset)
   offset += 1
-  key.key = buf.slice(offset, oldOffset + length + 2)
+  key.key = buf.subarray(offset, oldOffset + length + 2)
   offset += key.key.length
   rdnskey.decode.bytes = offset - oldOffset
   return key
@@ -1049,7 +1049,7 @@ rrrsig.decode = function (buf, offset) {
   offset += 2
   sig.signersName = name.decode(buf, offset)
   offset += name.decode.bytes
-  sig.signature = buf.slice(offset, oldOffset + length + 2)
+  sig.signature = buf.subarray(offset, oldOffset + length + 2)
   offset += sig.signature.length
   rrrsig.decode.bytes = offset - oldOffset
   return sig
@@ -1282,11 +1282,11 @@ rnsec3.decode = function (buf, offset) {
   offset += 2
   const saltLength = buf.readUInt8(offset)
   offset += 1
-  record.salt = buf.slice(offset, offset + saltLength)
+  record.salt = buf.subarray(offset, offset + saltLength)
   offset += saltLength
   const hashLength = buf.readUInt8(offset)
   offset += 1
-  record.nextDomain = buf.slice(offset, offset + hashLength)
+  record.nextDomain = buf.subarray(offset, offset + hashLength)
   offset += hashLength
   record.rrtypes = typebitmap.decode(buf, offset, length - (offset - oldOffset))
   offset += typebitmap.decode.bytes
@@ -1346,7 +1346,7 @@ rds.decode = function (buf, offset) {
   offset += 1
   digest.digestType = buf.readUInt8(offset)
   offset += 1
-  digest.digest = buf.slice(offset, oldOffset + length + 2)
+  digest.digest = buf.subarray(offset, oldOffset + length + 2)
   offset += digest.digest.length
   rds.decode.bytes = offset - oldOffset
   return digest
@@ -1405,7 +1405,7 @@ rsshfp.decode = function decode (buf, offset) {
   offset += 1
 
   const fingerprintLength = rsshfp.getFingerprintLengthForHashType(record.hash)
-  record.fingerprint = buf.slice(offset, offset + fingerprintLength).toString('hex').toUpperCase()
+  record.fingerprint = buf.subarray(offset, offset + fingerprintLength).toString('hex').toUpperCase()
   offset += fingerprintLength
   rsshfp.decode.bytes = offset - oldOffset
   return record
@@ -1515,7 +1515,7 @@ rtlsa.decode = function (buf, offset) {
   offset += 1
   cert.matchingType = buf.readUInt8(offset)
   offset += 1
-  cert.certificate = buf.slice(offset, oldOffset + length + 2)
+  cert.certificate = buf.subarray(offset, oldOffset + length + 2)
   offset += cert.certificate.length
   rtlsa.decode.bytes = offset - oldOffset
   return cert
