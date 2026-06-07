@@ -92,19 +92,19 @@ name.encode = function (str, buf, offset, opts) {
         } else if (localPart.length && !buf._nameLabels) {
           // First non-escaped label after escaped labels
           const combined = localPart + '.' + label
-          const len = buf.write(combined, offset + 1)
+          const len = asciiWrite(combined, buf, offset + 1)
           buf[offset] = len
           offset += len + 1
           localPart = ''
         } else {
           if (localPart.length) {
             const combined = localPart + '.' + label
-            const len = buf.write(combined, offset + 1)
+            const len = asciiWrite(combined, buf, offset + 1)
             buf[offset] = len
             offset += len + 1
             localPart = ''
           } else {
-            const len = buf.write(label, offset + 1)
+            const len = asciiWrite(label, buf, offset + 1)
             buf[offset] = len
             offset += len + 1
           }
