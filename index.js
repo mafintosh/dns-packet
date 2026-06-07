@@ -1739,10 +1739,12 @@ question.encode = function (q, buf, offset) {
   name.encode(q.name, buf, offset)
   offset += name.encode.bytes
 
-  buf[offset] = (types.toType(q.type)) >> 8; buf[offset + 1] = (types.toType(q.type)) & 0xff
+  const typeNum = types.toType(q.type)
+  buf[offset] = typeNum >> 8; buf[offset + 1] = typeNum & 0xff
   offset += 2
 
-  buf[offset] = (classes.toClass(q.class === undefined ? 'IN' : q.class)) >> 8; buf[offset + 1] = (classes.toClass(q.class === undefined ? 'IN' : q.class)) & 0xff
+  const klass = classes.toClass(q.class === undefined ? 'IN' : q.class)
+  buf[offset] = klass >> 8; buf[offset + 1] = klass & 0xff
   offset += 2
 
   question.encode.bytes = offset - oldOffset
