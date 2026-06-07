@@ -610,7 +610,7 @@ rcaa.encode = function (data, buf, offset) {
 
   buf.writeUInt16BE(len - 2, offset)
   offset += 2
-  buf.writeUInt8(data.flags || 0, offset)
+  buf[offset] = data.flags || 0
   offset += 1
   string.encode(data.tag, buf, offset)
   offset += string.encode.bytes
@@ -779,8 +779,8 @@ roption.encode = function (option, buf, offset) {
         offset += 2
         buf.writeUInt16BE(fam, offset)
         offset += 2
-        buf.writeUInt8(spl, offset++)
-        buf.writeUInt8(option.scopePrefixLength || 0, offset++)
+        buf[offset++] = spl
+        buf[offset++] = option.scopePrefixLength || 0
 
         ipBuf.copy(buf, offset, 0, ipLen)
         offset += ipLen
@@ -946,9 +946,9 @@ rdnskey.encode = function (key, buf, offset) {
   offset += 2 // Leave space for length
   buf.writeUInt16BE(key.flags, offset)
   offset += 2
-  buf.writeUInt8(rdnskey.PROTOCOL_DNSSEC, offset)
+  buf[offset] = rdnskey.PROTOCOL_DNSSEC
   offset += 1
-  buf.writeUInt8(key.algorithm, offset)
+  buf[offset] = key.algorithm
   offset += 1
   keydata.copy(buf, offset, 0, keydata.length)
   offset += keydata.length
@@ -1002,9 +1002,9 @@ rrrsig.encode = function (sig, buf, offset) {
   offset += 2 // Leave space for length
   buf.writeUInt16BE(types.toType(sig.typeCovered), offset)
   offset += 2
-  buf.writeUInt8(sig.algorithm, offset)
+  buf[offset] = sig.algorithm
   offset += 1
-  buf.writeUInt8(sig.labels, offset)
+  buf[offset] = sig.labels
   offset += 1
   buf.writeUInt32BE(sig.originalTTL, offset)
   offset += 4
@@ -1121,9 +1121,9 @@ typebitmap.encode = function (typelist, buf, offset) {
   for (i = 0; i < typesByWindow.length; i++) {
     if (typesByWindow[i] !== undefined) {
       var windowBuf = Buffer.from(typesByWindow[i])
-      buf.writeUInt8(i, offset)
+      buf[offset] = i
       offset += 1
-      buf.writeUInt8(windowBuf.length, offset)
+      buf[offset] = windowBuf.length
       offset += 1
       windowBuf.copy(buf, offset)
       offset += windowBuf.length
@@ -1243,17 +1243,17 @@ rnsec3.encode = function (record, buf, offset) {
   }
 
   offset += 2 // Leave space for length
-  buf.writeUInt8(record.algorithm, offset)
+  buf[offset] = record.algorithm
   offset += 1
-  buf.writeUInt8(record.flags, offset)
+  buf[offset] = record.flags
   offset += 1
   buf.writeUInt16BE(record.iterations, offset)
   offset += 2
-  buf.writeUInt8(salt.length, offset)
+  buf[offset] = salt.length
   offset += 1
   salt.copy(buf, offset, 0, salt.length)
   offset += salt.length
-  buf.writeUInt8(nextDomain.length, offset)
+  buf[offset] = nextDomain.length
   offset += 1
   nextDomain.copy(buf, offset, 0, nextDomain.length)
   offset += nextDomain.length
@@ -1319,9 +1319,9 @@ rds.encode = function (digest, buf, offset) {
   offset += 2 // Leave space for length
   buf.writeUInt16BE(digest.keyTag, offset)
   offset += 2
-  buf.writeUInt8(digest.algorithm, offset)
+  buf[offset] = digest.algorithm
   offset += 1
-  buf.writeUInt8(digest.digestType, offset)
+  buf[offset] = digest.digestType
   offset += 1
   digestdata.copy(buf, offset, 0, digestdata.length)
   offset += digestdata.length
@@ -1486,11 +1486,11 @@ rtlsa.encode = function (cert, buf, offset) {
   }
 
   offset += 2 // Leave space for length
-  buf.writeUInt8(cert.usage, offset)
+  buf[offset] = cert.usage
   offset += 1
-  buf.writeUInt8(cert.selector, offset)
+  buf[offset] = cert.selector
   offset += 1
-  buf.writeUInt8(cert.matchingType, offset)
+  buf[offset] = cert.matchingType
   offset += 1
   certdata.copy(buf, offset, 0, certdata.length)
   offset += certdata.length
@@ -1578,8 +1578,8 @@ answer.encode = function (a, buf, offset) {
       throw new Error('OPT name must be root.')
     }
     buf.writeUInt16BE(a.udpPayloadSize || 4096, offset + 2)
-    buf.writeUInt8(a.extendedRcode || 0, offset + 4)
-    buf.writeUInt8(a.ednsVersion || 0, offset + 5)
+    buf[offset + 4] = a.extendedRcode || 0
+    buf[offset + 5] = a.ednsVersion || 0
     buf.writeUInt16BE(a.flags || 0, offset + 6)
 
     offset += 8
