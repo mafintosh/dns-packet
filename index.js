@@ -17,7 +17,8 @@ const NOT_QU_MASK = ~QU_MASK
 
 const name = exports.name = {}
 
-name.encode = function (str, buf, offset, { mail = false } = {}) {
+name.encode = function (str, buf, offset, opts) {
+  const mail = opts ? opts.mail : false
   if (!buf) buf = Buffer.alloc(name.encodingLength(str))
   if (!offset) offset = 0
   const oldOffset = offset
@@ -86,8 +87,9 @@ name.encode = function (str, buf, offset, { mail = false } = {}) {
 
 name.encode.bytes = 0
 
-name.decode = function (buf, offset, { mail = false } = {}) {
+name.decode = function (buf, offset, opts) {
   if (!offset) offset = 0
+  const mail = opts ? opts.mail : false
 
   let oldOffset = offset
   let totalLength = 0
