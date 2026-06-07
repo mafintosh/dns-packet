@@ -15,6 +15,26 @@ const NOT_FLUSH_MASK = ~FLUSH_MASK
 const QU_MASK = 1 << 15
 const NOT_QU_MASK = ~QU_MASK
 
+// Helper: check if string is pure ASCII and write it to buffer
+// Returns number of bytes written (same as string length for ASCII)
+function asciiWrite(str, buf, offset) {
+  const len = str.length
+  let isAscii = true
+  for (let i = 0; i < len; i++) {
+    if (str.charCodeAt(i) > 127) {
+      isAscii = false
+      break
+    }
+  }
+  if (isAscii) {
+    for (let i = 0; i < len; i++) {
+      buf[offset + i] = str.charCodeAt(i)
+    }
+    return len
+  }
+  return buf.write(str, offset)
+}
+
 const name = exports.name = {}
 
 name.encode = function (str, buf, offset, opts) {
@@ -72,7 +92,7 @@ name.encode = function (str, buf, offset, opts) {
         if (dotPos === -1) dotPos = n.length
         const label = n.substring(pos, dotPos)
         pos = dotPos + 1
-        const len = buf.write(label, offset + 1)
+        const len = asciiWrite(label, buf, offset + 1)
         buf[offset] = len
         offset += len + 1
       }
