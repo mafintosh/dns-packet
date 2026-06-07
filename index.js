@@ -1837,11 +1837,20 @@ exports.decode = function (buf, offset) {
 exports.decode.bytes = 0
 
 exports.encodingLength = function (result) {
-  return header.encodingLength(result) +
-    encodingLengthList(result.questions || [], question) +
-    encodingLengthList(result.answers || [], answer) +
-    encodingLengthList(result.authorities || [], answer) +
-    encodingLengthList(result.additionals || [], answer)
+  let len = 12
+
+  // Inline question encodingLength (questions always use question encoder)
+  const questions = result.questions || []
+  for (let i = 0; i < questions.length; i++) {
+    len += name.encodingLength(questions[i].name) + 4
+  }
+
+  // Answers, authorities, additionals use answer encoder
+  len += encodingLengthList(result.answers || [], answer)
+  len += encodingLengthList(result.authorities || [], answer)
+  len += encodingLengthList(result.additionals || [], answer)
+
+  return len
 }
 
 exports.streamEncode = function (result) {
