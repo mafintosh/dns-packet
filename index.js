@@ -244,13 +244,21 @@ header.encode = function (h, buf, offset) {
 
   const flags = (h.flags || 0) & 32767
   const type = h.type === 'response' ? RESPONSE_FLAG : QUERY_FLAG
+  const flagsType = flags | type
+  const id = h.id || 0
+  const qlen = h.questions.length
+  const alen = h.answers.length
+  const authlen = h.authorities.length
+  const addlen = h.additionals.length
 
-  buf[offset] = (h.id || 0) >> 8; buf[offset + 1] = (h.id || 0) & 0xff
-  buf[offset + 2] = (flags | type) >> 8; buf[offset + 2 + 1] = (flags | type) & 0xff
-  buf[offset + 4] = (h.questions.length) >> 8; buf[offset + 4 + 1] = (h.questions.length) & 0xff
-  buf[offset + 6] = (h.answers.length) >> 8; buf[offset + 6 + 1] = (h.answers.length) & 0xff
-  buf[offset + 8] = (h.authorities.length) >> 8; buf[offset + 8 + 1] = (h.authorities.length) & 0xff
-  buf[offset + 10] = (h.additionals.length) >> 8; buf[offset + 10 + 1] = (h.additionals.length) & 0xff
+  // Batch header using DataView
+  const dv = new DataView(buf.buffer, buf.byteOffset + offset, 12)
+  dv.setUint16(0, id)
+  dv.setUint16(2, flagsType)
+  dv.setUint16(4, qlen)
+  dv.setUint16(6, alen)
+  dv.setUint16(8, authlen)
+  dv.setUint16(10, addlen)
 
   return buf
 }
