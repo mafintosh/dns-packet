@@ -1570,9 +1570,10 @@ answer.encode = function (a, buf, offset) {
   name.encode(a.name, buf, offset)
   offset += name.encode.bytes
 
-  buf.writeUInt16BE(types.toType(a.type), offset)
+  const typeNum = types.toType(a.type)
+  buf.writeUInt16BE(typeNum, offset)
 
-  if (a.type.toUpperCase() === 'OPT') {
+  if (typeNum === 41) { // OPT
     if (a.name !== '.') {
       throw new Error('OPT name must be root.')
     }
