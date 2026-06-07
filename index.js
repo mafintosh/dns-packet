@@ -698,7 +698,9 @@ rcaa.decode = function (buf, offset) {
 rcaa.decode.bytes = 0
 
 rcaa.encodingLength = function (data) {
-  return string.encodingLength(data.tag) + string.encodingLength(data.value) + 2
+  const tagLen = byteLengthAscii(data.tag)
+  const valueLen = byteLengthAscii(data.value)
+  return tagLen + 1 + valueLen + 1 + 2
 }
 
 const rmx = exports.mx = {}
