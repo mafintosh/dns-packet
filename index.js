@@ -1733,12 +1733,12 @@ exports.encodingLength = function (result) {
 }
 
 exports.streamEncode = function (result) {
-  const buf = exports.encode(result)
-  const sbuf = Buffer.alloc(2)
-  sbuf.writeUInt16BE(buf.byteLength)
-  const combine = Buffer.concat([sbuf, buf])
-  exports.streamEncode.bytes = combine.byteLength
-  return combine
+  const len = exports.encodingLength(result)
+  const buf = Buffer.alloc(len + 2)
+  buf.writeUInt16BE(len, 0)
+  exports.encode(result, buf, 2)
+  exports.streamEncode.bytes = buf.byteLength
+  return buf
 }
 
 exports.streamEncode.bytes = 0
