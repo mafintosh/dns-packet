@@ -1775,7 +1775,7 @@ exports.streamDecode = function (sbuf) {
     // not enough data
     return null
   }
-  const result = exports.decode(sbuf.slice(2))
+  const result = exports.decode(sbuf.subarray(2))
   exports.streamDecode.bytes = exports.decode.bytes
   return result
 }
