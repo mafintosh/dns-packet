@@ -315,7 +315,7 @@ runknown.encode.bytes = 0
 runknown.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  const len = buf.readUInt16BE(offset)
+  const len = (buf[offset] << 8) | buf[offset + 1]
   const data = buf.subarray(offset + 2, offset + 2 + len)
   runknown.decode.bytes = len + 2
   return data
@@ -344,7 +344,7 @@ rns.encode.bytes = 0
 rns.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  const len = buf.readUInt16BE(offset)
+  const len = (buf[offset] << 8) | buf[offset + 1]
   const dd = name.decode(buf, offset + 2)
 
   rns.decode.bytes = len + 2
@@ -455,7 +455,7 @@ rtxt.encode.bytes = 0
 rtxt.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
-  let remaining = buf.readUInt16BE(offset)
+  let remaining = (buf[offset] << 8) | buf[offset + 1]
   offset += 2
 
   // Estimate array size from remaining bytes (worst case: 1 byte per TXT entry)
@@ -516,7 +516,7 @@ rnull.encode.bytes = 0
 rnull.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
-  const len = buf.readUInt16BE(offset)
+  const len = (buf[offset] << 8) | buf[offset + 1]
 
   offset += 2
 
@@ -593,8 +593,9 @@ rptr.encode.bytes = 0
 rptr.decode = function (buf, offset) {
   if (!offset) offset = 0
 
+  const len = (buf[offset] << 8) | buf[offset + 1]
   const data = name.decode(buf, offset + 2)
-  rptr.decode.bytes = name.decode.bytes + 2
+  rptr.decode.bytes = len + 2
   return data
 }
 
@@ -627,12 +628,12 @@ rsrv.encode.bytes = 0
 rsrv.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  const len = buf.readUInt16BE(offset)
+  const len = (buf[offset] << 8) | buf[offset + 1]
 
   const data = {}
-  data.priority = buf.readUInt16BE(offset + 2)
-  data.weight = buf.readUInt16BE(offset + 4)
-  data.port = buf.readUInt16BE(offset + 6)
+  data.priority = (buf[offset + 2] << 8) | buf[offset + 3]
+  data.weight = (buf[offset + 4] << 8) | buf[offset + 5]
+  data.port = (buf[offset + 6] << 8) | buf[offset + 7]
   data.target = name.decode(buf, offset + 8)
 
   rsrv.decode.bytes = len + 2
@@ -676,7 +677,7 @@ rcaa.encode.bytes = 0
 rcaa.decode = function (buf, offset) {
   if (!offset) offset = 0
 
-  const len = buf.readUInt16BE(offset)
+  const len = (buf[offset] << 8) | buf[offset + 1]
   offset += 2
 
   const oldOffset = offset
@@ -727,7 +728,7 @@ rmx.decode = function (buf, offset) {
 
   const data = {}
   offset += 2
-  data.preference = buf.readUInt16BE(offset)
+  data.preference = (buf[offset] << 8) | buf[offset + 1]
   offset += 2
   data.exchange = name.decode(buf, offset)
   offset += name.decode.bytes
