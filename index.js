@@ -880,16 +880,16 @@ roption.encode.bytes = 0
 roption.decode = function (buf, offset) {
   if (!offset) offset = 0
   const option = {}
-  option.code = buf.readUInt16BE(offset)
+  option.code = (buf[offset] << 8) | buf[offset + 1]
   option.type = optioncodes.toString(option.code)
   offset += 2
-  const len = buf.readUInt16BE(offset)
+  const len = (buf[offset] << 8) | buf[offset + 1]
   offset += 2
   option.data = buf.subarray(offset, offset + len)
   switch (option.code) {
     // case 3: NSID.  No decode makes sense.
     case 8: // ECS
-      option.family = buf.readUInt16BE(offset)
+      option.family = (buf[offset] << 8) | buf[offset + 1]
       offset += 2
       option.sourcePrefixLength = buf[offset++]
       option.scopePrefixLength = buf[offset++]
@@ -900,14 +900,14 @@ roption.decode = function (buf, offset) {
     // case 12: Padding.  No decode makes sense.
     case 11: // KEEP-ALIVE
       if (len > 0) {
-        option.timeout = buf.readUInt16BE(offset)
+        option.timeout = (buf[offset] << 8) | buf[offset + 1]
         offset += 2
       }
       break
     case 14:
       option.tags = []
       for (let i = 0; i < len; i += 2) {
-        option.tags.push(buf.readUInt16BE(offset))
+        option.tags.push((buf[offset] << 8) | buf[offset + 1])
         offset += 2
       }
     // don't worry about default.  caller will use data if desired
@@ -960,7 +960,7 @@ ropt.decode = function (buf, offset) {
   const oldOffset = offset
 
   const options = []
-  let rdlen = buf.readUInt16BE(offset)
+  let rdlen = (buf[offset] << 8) | buf[offset + 1]
   offset += 2
   let o = 0
   while (rdlen > 0) {
