@@ -1610,13 +1610,14 @@ answer.decode = function (buf, offset) {
 
   a.name = name.decode(buf, offset)
   offset += name.decode.bytes
-  a.type = types.toString(buf.readUInt16BE(offset))
-  if (a.type === 'OPT') {
+  const typeNum = buf.readUInt16BE(offset)
+  a.type = types.toString(typeNum)
+  if (typeNum === 41) { // OPT type number - avoid string comparison
     a.udpPayloadSize = buf.readUInt16BE(offset + 2)
     a.extendedRcode = buf.readUInt8(offset + 4)
     a.ednsVersion = buf.readUInt8(offset + 5)
     a.flags = buf.readUInt16BE(offset + 6)
-    a.flag_do = ((a.flags >> 15) & 0x1) === 1
+    a.flag_do = (a.flags & 0x8000) !== 0
     a.options = ropt.decode(buf, offset + 8)
     offset += 8 + ropt.decode.bytes
   } else {
@@ -1624,7 +1625,7 @@ answer.decode = function (buf, offset) {
     a.ttl = buf.readUInt32BE(offset + 4)
 
     a.class = classes.toString(klass & NOT_FLUSH_MASK)
-    a.flush = !!(klass & FLUSH_MASK)
+    a.flush = (klass & FLUSH_MASK) !== 0
 
     const enc = renc(a.type)
     a.data = enc.decode(buf, offset + 8)
