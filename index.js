@@ -67,11 +67,14 @@ name.encode.bytes = 0
 name.decode = function (buf, offset, { mail = false } = {}) {
   if (!offset) offset = 0
 
-  const list = []
   let oldOffset = offset
   let totalLength = 0
   let consumedBytes = 0
   let jumped = false
+
+  // Build result string directly to avoid array + join overhead
+  let result = ''
+  let firstLabel = true
 
   while (true) {
     if (offset >= buf.length) {
@@ -94,7 +97,12 @@ name.decode = function (buf, offset, { mail = false } = {}) {
       if (mail) {
         label = label.replace(/\./g, '\\.')
       }
-      list.push(label)
+      if (firstLabel) {
+        result = label
+        firstLabel = false
+      } else {
+        result += '.' + label
+      }
       offset += len
       consumedBytes += jumped ? 0 : len
     } else if ((len & 0xc0) === 0xc0) {
@@ -118,7 +126,7 @@ name.decode = function (buf, offset, { mail = false } = {}) {
   }
 
   name.decode.bytes = consumedBytes
-  return list.length === 0 ? '.' : list.join('.')
+  return firstLabel ? '.' : result
 }
 
 name.decode.bytes = 0
