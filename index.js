@@ -213,8 +213,8 @@ name.encodingLength = function (n) {
 const string = {}
 
 string.encode = function (s, buf, offset) {
-  if (!buf) buf = Buffer.alloc(string.encodingLength(s))
   if (!offset) offset = 0
+  if (!buf) buf = Buffer.alloc(byteLengthAscii(s) + 1)
 
   const len = asciiWrite(s, buf, offset + 1)
   buf[offset] = len
