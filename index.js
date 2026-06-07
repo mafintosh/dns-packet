@@ -320,15 +320,15 @@ rsoa.encode = function (data, buf, offset) {
   offset += name.encode.bytes
   name.encode(data.rname, buf, offset, { mail: true })
   offset += name.encode.bytes
-  buf.writeUInt32BE(data.serial || 0, offset)
+  buf[offset] = (data.serial || 0) >>> 24; buf[offset + 1] = ((data.serial || 0) >>> 16) & 0xff; buf[offset + 2] = ((data.serial || 0) >>> 8) & 0xff; buf[offset + 3] = (data.serial || 0) & 0xff
   offset += 4
-  buf.writeUInt32BE(data.refresh || 0, offset)
+  buf[offset] = (data.refresh || 0) >>> 24; buf[offset + 1] = ((data.refresh || 0) >>> 16) & 0xff; buf[offset + 2] = ((data.refresh || 0) >>> 8) & 0xff; buf[offset + 3] = (data.refresh || 0) & 0xff
   offset += 4
-  buf.writeUInt32BE(data.retry || 0, offset)
+  buf[offset] = (data.retry || 0) >>> 24; buf[offset + 1] = ((data.retry || 0) >>> 16) & 0xff; buf[offset + 2] = ((data.retry || 0) >>> 8) & 0xff; buf[offset + 3] = (data.retry || 0) & 0xff
   offset += 4
-  buf.writeUInt32BE(data.expire || 0, offset)
+  buf[offset] = (data.expire || 0) >>> 24; buf[offset + 1] = ((data.expire || 0) >>> 16) & 0xff; buf[offset + 2] = ((data.expire || 0) >>> 8) & 0xff; buf[offset + 3] = (data.expire || 0) & 0xff
   offset += 4
-  buf.writeUInt32BE(data.minimum || 0, offset)
+  buf[offset] = (data.minimum || 0) >>> 24; buf[offset + 1] = ((data.minimum || 0) >>> 16) & 0xff; buf[offset + 2] = ((data.minimum || 0) >>> 8) & 0xff; buf[offset + 3] = (data.minimum || 0) & 0xff
   offset += 4
 
   buf[oldOffset] = (offset - oldOffset - 2) >> 8; buf[oldOffset + 1] = (offset - oldOffset - 2) & 0xff
@@ -1006,11 +1006,11 @@ rrrsig.encode = function (sig, buf, offset) {
   offset += 1
   buf[offset] = sig.labels
   offset += 1
-  buf.writeUInt32BE(sig.originalTTL, offset)
+  buf[offset] = (sig.originalTTL) >>> 24; buf[offset + 1] = ((sig.originalTTL) >>> 16) & 0xff; buf[offset + 2] = ((sig.originalTTL) >>> 8) & 0xff; buf[offset + 3] = (sig.originalTTL) & 0xff
   offset += 4
-  buf.writeUInt32BE(sig.expiration, offset)
+  buf[offset] = (sig.expiration) >>> 24; buf[offset + 1] = ((sig.expiration) >>> 16) & 0xff; buf[offset + 2] = ((sig.expiration) >>> 8) & 0xff; buf[offset + 3] = (sig.expiration) & 0xff
   offset += 4
-  buf.writeUInt32BE(sig.inception, offset)
+  buf[offset] = (sig.inception) >>> 24; buf[offset + 1] = ((sig.inception) >>> 16) & 0xff; buf[offset + 2] = ((sig.inception) >>> 8) & 0xff; buf[offset + 3] = (sig.inception) & 0xff
   offset += 4
   buf[offset] = (sig.keyTag) >> 8; buf[offset + 1] = (sig.keyTag) & 0xff
   offset += 2
@@ -1589,7 +1589,7 @@ answer.encode = function (a, buf, offset) {
     let klass = classes.toClass(a.class === undefined ? 'IN' : a.class)
     if (a.flush) klass |= FLUSH_MASK // the 1st bit of the class is the flush bit
     buf[offset + 2] = (klass) >> 8; buf[offset + 2 + 1] = (klass) & 0xff
-    buf.writeUInt32BE(a.ttl || 0, offset + 4)
+    buf[offset + 4] = (a.ttl || 0) >>> 24; buf[offset + 4 + 1] = ((a.ttl || 0) >>> 16) & 0xff; buf[offset + 4 + 2] = ((a.ttl || 0) >>> 8) & 0xff; buf[offset + 4 + 3] = (a.ttl || 0) & 0xff
 
     offset += 8
     const enc = renc(a.type)
