@@ -349,15 +349,15 @@ rsoa.decode = function (buf, offset) {
   offset += name.decode.bytes
   data.rname = name.decode(buf, offset, { mail: true })
   offset += name.decode.bytes
-  data.serial = buf.readUInt32BE(offset)
+  data.serial = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
   offset += 4
-  data.refresh = buf.readUInt32BE(offset)
+  data.refresh = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
   offset += 4
-  data.retry = buf.readUInt32BE(offset)
+  data.retry = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
   offset += 4
-  data.expire = buf.readUInt32BE(offset)
+  data.expire = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
   offset += 4
-  data.minimum = buf.readUInt32BE(offset)
+  data.minimum = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
   offset += 4
 
   rsoa.decode.bytes = offset - oldOffset
@@ -1039,11 +1039,11 @@ rrrsig.decode = function (buf, offset) {
   offset += 1
   sig.labels = buf[offset]
   offset += 1
-  sig.originalTTL = buf.readUInt32BE(offset)
+  sig.originalTTL = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
   offset += 4
-  sig.expiration = buf.readUInt32BE(offset)
+  sig.expiration = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
   offset += 4
-  sig.inception = buf.readUInt32BE(offset)
+  sig.inception = ((buf[offset] << 24) | (buf[offset + 1] << 16) | (buf[offset + 2] << 8) | buf[offset + 3])
   offset += 4
   sig.keyTag = ((buf[offset] << 8) | buf[offset + 1])
   offset += 2
@@ -1623,7 +1623,7 @@ answer.decode = function (buf, offset) {
     offset += 8 + ropt.decode.bytes
   } else {
     const klass = ((buf[offset + 2] << 8) | buf[offset + 2 + 1])
-    a.ttl = buf.readUInt32BE(offset + 4)
+    a.ttl = ((buf[offset + 4] << 24) | (buf[offset + 4 + 1] << 16) | (buf[offset + 4 + 2] << 8) | buf[offset + 4 + 3])
 
     a.class = classes.toString(klass & NOT_FLUSH_MASK)
     a.flush = (klass & FLUSH_MASK) !== 0
