@@ -18,7 +18,7 @@ const NOT_QU_MASK = ~QU_MASK
 const name = exports.name = {}
 
 name.encode = function (str, buf, offset, { mail = false } = {}) {
-  if (!buf) buf = Buffer.alloc(name.encodingLength(str))
+  if (!buf) buf = Buffer.alloc(name.encodingLength(str, { mail }))
   if (!offset) offset = 0
   const oldOffset = offset
 
@@ -117,9 +117,17 @@ name.decode = function (buf, offset, { mail = false } = {}) {
 
 name.decode.bytes = 0
 
-name.encodingLength = function (n) {
+name.encodingLength = function (n, { mail = false } = {}) {
   if (n === '.' || n === '..') return 1
-  return Buffer.byteLength(n.replace(/^\.|\.$/gm, '')) + 2
+  const str = n.replace(/^\.|\.$/gm, '')
+  let length = Buffer.byteLength(str) + 2
+  if (mail) {
+    const labels = str.split('.')
+    for (let i = 0; i < labels.length - 1; i++) {
+      if (labels[i].endsWith('\\')) length -= 1
+    }
+  }
+  return length
 }
 
 const string = {}
@@ -323,7 +331,7 @@ rsoa.decode = function (buf, offset) {
 rsoa.decode.bytes = 0
 
 rsoa.encodingLength = function (data) {
-  return 22 + name.encodingLength(data.mname) + name.encodingLength(data.rname)
+  return 22 + name.encodingLength(data.mname) + name.encodingLength(data.rname, { mail: true })
 }
 
 const rtxt = exports.txt = {}
@@ -1055,7 +1063,7 @@ rrp.decode = function (buf, offset) {
 rrp.decode.bytes = 0
 
 rrp.encodingLength = function (data) {
-  return 2 + name.encodingLength(data.mbox || '.') + name.encodingLength(data.txt || '.')
+  return 2 + name.encodingLength(data.mbox || '.', { mail: true }) + name.encodingLength(data.txt || '.')
 }
 
 const typebitmap = {}

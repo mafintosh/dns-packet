@@ -104,6 +104,25 @@ tape('soa', function (t) {
     expire: 604800,
     minimum: 3600
   })
+  // rname with an escaped dot in the mailbox local part (RFC 1035 5.1):
+  // the mail encoding drops the backslash, so encodingLength must match too.
+  testEncoder(t, packet.soa, {
+    mname: 'hello.world.com',
+    rname: 'john\\.doe.hello.world.com',
+    serial: 2018010400,
+    refresh: 14400,
+    retry: 3600,
+    expire: 604800,
+    minimum: 3600
+  })
+  t.end()
+})
+
+tape('rp', function (t) {
+  testEncoder(t, packet.rp, {
+    mbox: 'admin\\.team.hello.world.com',
+    txt: 'contact.hello.world.com'
+  })
   t.end()
 })
 
