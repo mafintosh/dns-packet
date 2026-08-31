@@ -12,6 +12,9 @@ exports.toString = function (klass) {
 }
 
 exports.toClass = function (name) {
+  if (typeof name === 'number') {
+    return name;
+  }
   switch (name.toUpperCase()) {
     case 'IN': return 1
     case 'CS': return 2
