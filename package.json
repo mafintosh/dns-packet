@@ -12,6 +12,7 @@
   "scripts": {
     "clean": "rm -rf coverage .nyc_output/",
     "lint": "eslint --color *.js examples/*.js",
+    "lint:fix": "eslint --color *.js examples/*.js --fix",
     "pretest": "npm run lint",
     "test": "tape test.js",
     "coverage": "nyc -r html npm test"
