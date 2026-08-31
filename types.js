@@ -1,103 +1,74 @@
 'use strict'
 
-exports.toString = function (type) {
-  switch (type) {
-    case 1: return 'A'
-    case 10: return 'NULL'
-    case 28: return 'AAAA'
-    case 18: return 'AFSDB'
-    case 42: return 'APL'
-    case 257: return 'CAA'
-    case 60: return 'CDNSKEY'
-    case 59: return 'CDS'
-    case 37: return 'CERT'
-    case 5: return 'CNAME'
-    case 49: return 'DHCID'
-    case 32769: return 'DLV'
-    case 39: return 'DNAME'
-    case 48: return 'DNSKEY'
-    case 43: return 'DS'
-    case 55: return 'HIP'
-    case 13: return 'HINFO'
-    case 45: return 'IPSECKEY'
-    case 25: return 'KEY'
-    case 36: return 'KX'
-    case 29: return 'LOC'
-    case 15: return 'MX'
-    case 35: return 'NAPTR'
-    case 2: return 'NS'
-    case 47: return 'NSEC'
-    case 50: return 'NSEC3'
-    case 51: return 'NSEC3PARAM'
-    case 12: return 'PTR'
-    case 46: return 'RRSIG'
-    case 17: return 'RP'
-    case 24: return 'SIG'
-    case 6: return 'SOA'
-    case 99: return 'SPF'
-    case 33: return 'SRV'
-    case 44: return 'SSHFP'
-    case 32768: return 'TA'
-    case 249: return 'TKEY'
-    case 52: return 'TLSA'
-    case 250: return 'TSIG'
-    case 16: return 'TXT'
-    case 252: return 'AXFR'
-    case 251: return 'IXFR'
-    case 41: return 'OPT'
-    case 255: return 'ANY'
-  }
-  return 'UNKNOWN_' + type
+const typeToString = {}
+const typeToNumber = {}
+
+function toString (type) {
+  return typeToString[type] || ('UNKNOWN_' + type)
 }
 
-exports.toType = function (name) {
-  switch (name.toUpperCase()) {
-    case 'A': return 1
-    case 'NULL': return 10
-    case 'AAAA': return 28
-    case 'AFSDB': return 18
-    case 'APL': return 42
-    case 'CAA': return 257
-    case 'CDNSKEY': return 60
-    case 'CDS': return 59
-    case 'CERT': return 37
-    case 'CNAME': return 5
-    case 'DHCID': return 49
-    case 'DLV': return 32769
-    case 'DNAME': return 39
-    case 'DNSKEY': return 48
-    case 'DS': return 43
-    case 'HIP': return 55
-    case 'HINFO': return 13
-    case 'IPSECKEY': return 45
-    case 'KEY': return 25
-    case 'KX': return 36
-    case 'LOC': return 29
-    case 'MX': return 15
-    case 'NAPTR': return 35
-    case 'NS': return 2
-    case 'NSEC': return 47
-    case 'NSEC3': return 50
-    case 'NSEC3PARAM': return 51
-    case 'PTR': return 12
-    case 'RRSIG': return 46
-    case 'RP': return 17
-    case 'SIG': return 24
-    case 'SOA': return 6
-    case 'SPF': return 99
-    case 'SRV': return 33
-    case 'SSHFP': return 44
-    case 'TA': return 32768
-    case 'TKEY': return 249
-    case 'TLSA': return 52
-    case 'TSIG': return 250
-    case 'TXT': return 16
-    case 'AXFR': return 252
-    case 'IXFR': return 251
-    case 'OPT': return 41
-    case 'ANY': return 255
-    case '*': return 255
-  }
-  if (name.toUpperCase().startsWith('UNKNOWN_')) return parseInt(name.slice(8))
+function toType (name) {
+  if (typeof name === 'number') return name
+  const upper = name.toUpperCase()
+  if (typeToNumber[upper] !== undefined) return typeToNumber[upper]
+  if (upper.startsWith('UNKNOWN_')) return parseInt(upper.slice(8))
   return 0
 }
+
+// Populate lookup maps
+const types = [
+  [1, 'A'],
+  [10, 'NULL'],
+  [28, 'AAAA'],
+  [18, 'AFSDB'],
+  [42, 'APL'],
+  [257, 'CAA'],
+  [60, 'CDNSKEY'],
+  [59, 'CDS'],
+  [37, 'CERT'],
+  [5, 'CNAME'],
+  [49, 'DHCID'],
+  [32769, 'DLV'],
+  [39, 'DNAME'],
+  [48, 'DNSKEY'],
+  [43, 'DS'],
+  [55, 'HIP'],
+  [13, 'HINFO'],
+  [45, 'IPSECKEY'],
+  [25, 'KEY'],
+  [36, 'KX'],
+  [29, 'LOC'],
+  [15, 'MX'],
+  [35, 'NAPTR'],
+  [2, 'NS'],
+  [47, 'NSEC'],
+  [50, 'NSEC3'],
+  [51, 'NSEC3PARAM'],
+  [12, 'PTR'],
+  [46, 'RRSIG'],
+  [17, 'RP'],
+  [24, 'SIG'],
+  [6, 'SOA'],
+  [99, 'SPF'],
+  [33, 'SRV'],
+  [44, 'SSHFP'],
+  [32768, 'TA'],
+  [249, 'TKEY'],
+  [52, 'TLSA'],
+  [250, 'TSIG'],
+  [16, 'TXT'],
+  [252, 'AXFR'],
+  [251, 'IXFR'],
+  [41, 'OPT'],
+  [255, 'ANY']
+]
+
+for (const [num, str] of types) {
+  typeToString[num] = str
+  typeToNumber[str] = num
+}
+// '*' is an alias for ANY
+typeToNumber['*'] = 255
+
+exports.toString = toString
+exports.toType = toType

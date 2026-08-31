@@ -1,50 +1,42 @@
 'use strict'
 
-/*
- * Traditional DNS header RCODEs (4-bits) defined by IANA in
- * https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
- */
+const codeToString = {}
+const stringToCode = {}
 
-exports.toString = function (rcode) {
-  switch (rcode) {
-    case 0: return 'NOERROR'
-    case 1: return 'FORMERR'
-    case 2: return 'SERVFAIL'
-    case 3: return 'NXDOMAIN'
-    case 4: return 'NOTIMP'
-    case 5: return 'REFUSED'
-    case 6: return 'YXDOMAIN'
-    case 7: return 'YXRRSET'
-    case 8: return 'NXRRSET'
-    case 9: return 'NOTAUTH'
-    case 10: return 'NOTZONE'
-    case 11: return 'RCODE_11'
-    case 12: return 'RCODE_12'
-    case 13: return 'RCODE_13'
-    case 14: return 'RCODE_14'
-    case 15: return 'RCODE_15'
-  }
-  return 'RCODE_' + rcode
+function toString (rcode) {
+  return codeToString[rcode] || ('RCODE_' + rcode)
 }
 
-exports.toRcode = function (code) {
-  switch (code.toUpperCase()) {
-    case 'NOERROR': return 0
-    case 'FORMERR': return 1
-    case 'SERVFAIL': return 2
-    case 'NXDOMAIN': return 3
-    case 'NOTIMP': return 4
-    case 'REFUSED': return 5
-    case 'YXDOMAIN': return 6
-    case 'YXRRSET': return 7
-    case 'NXRRSET': return 8
-    case 'NOTAUTH': return 9
-    case 'NOTZONE': return 10
-    case 'RCODE_11': return 11
-    case 'RCODE_12': return 12
-    case 'RCODE_13': return 13
-    case 'RCODE_14': return 14
-    case 'RCODE_15': return 15
-  }
+function toRcode (code) {
+  if (typeof code === 'number') return code
+  const upper = code.toUpperCase()
+  if (stringToCode[upper] !== undefined) return stringToCode[upper]
   return 0
 }
+
+const codes = [
+  [0, 'NOERROR'],
+  [1, 'FORMERR'],
+  [2, 'SERVFAIL'],
+  [3, 'NXDOMAIN'],
+  [4, 'NOTIMP'],
+  [5, 'REFUSED'],
+  [6, 'YXDOMAIN'],
+  [7, 'YXRRSET'],
+  [8, 'NXRRSET'],
+  [9, 'NOTAUTH'],
+  [10, 'NOTZONE'],
+  [11, 'RCODE_11'],
+  [12, 'RCODE_12'],
+  [13, 'RCODE_13'],
+  [14, 'RCODE_14'],
+  [15, 'RCODE_15']
+]
+
+for (const [num, str] of codes) {
+  codeToString[num] = str
+  stringToCode[str] = num
+}
+
+exports.toString = toString
+exports.toRcode = toRcode
