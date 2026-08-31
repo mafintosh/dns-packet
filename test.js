@@ -6,6 +6,10 @@ const rcodes = require('./rcodes')
 const opcodes = require('./opcodes')
 const optioncodes = require('./optioncodes')
 
+const ip = require('@leichtgewicht/ip-codec')
+
+const hexdump = require('./hexdump')
+
 tape('unknown', function (t) {
   testEncoder(t, packet.unknown, Buffer.from('hello world'))
   t.end()
@@ -614,6 +618,534 @@ tape('tlsa', function (t) {
   })
   t.end()
 })
+
+const unhexlify = (hex) => {
+  return Buffer.from(hex.match(/[\da-f]{2}/gi).map(function (h) { return parseInt(h, 16) }))
+}
+
+// <HTTPS SVCB test cases>
+const debugHttps = false
+
+const testScvbDecodeEncode = (t, testname, packetbuf, expected, skipEncode = false, skipMemcmpBufs = false) => {
+  const decoded = packet.svcb.decode(packetbuf, 0)
+  if (debugHttps) {
+    console.log(`${testname}: decode:`)
+    console.log(JSON.stringify(decoded, null, 2))
+  }
+  t.ok(compare(t, decoded, expected), 'svcb ' + testname + ' decode')
+  const encoded = packet.svcb.encode(expected)
+  if (!skipEncode) {
+    if (debugHttps) {
+      console.log(`${testname}: encode:`)
+      hexdump(encoded)
+    }
+    if (!skipMemcmpBufs) {
+      t.ok(compare(t, packetbuf, encoded), 'svcb ' + testname + ' encode memcmp')
+    }
+    // now decode the encoded buffer and check for sameness
+    const recoded = packet.svcb.decode(encoded, 0)
+    if (debugHttps) {
+      console.log(`${testname}: recode`)
+      console.log(JSON.stringify(decoded, null, 2))
+    }
+    t.ok(compare(t, recoded, expected), 'svcb ' + testname + ' recode')
+  }
+}
+
+const testHttpsDecodeEncode = (t, testname, packetbuf, expected, skipEncode = false, skipMemcmpBufs = false) => {
+  const decoded = packet.httpssvc.decode(packetbuf, 0)
+  if (debugHttps) {
+    console.log(`${testname}: decode:`)
+    console.log(JSON.stringify(decoded, null, 2))
+  }
+  t.ok(compare(t, decoded, expected), 'https ' + testname + ' decode')
+  const encoded = packet.httpssvc.encode(expected)
+  if (!skipEncode) {
+    if (debugHttps) {
+      console.log(`${testname}: encode:`)
+      hexdump(encoded)
+    }
+    if (!skipMemcmpBufs) {
+      t.ok(compare(t, packetbuf, encoded), 'https ' + testname + ' encode memcmp')
+    }
+    // now decode the encoded buffer and check for sameness
+    const recoded = packet.httpssvc.decode(encoded, 0)
+    if (debugHttps) {
+      console.log(`${testname}: recode`)
+      console.log(JSON.stringify(decoded, null, 2))
+    }
+    t.ok(compare(t, recoded, expected), 'https ' + testname + ' recode')
+  }
+  return encoded
+}
+
+const testHttpsSvcbDecodeEncode = (t, testname, packetbuf, expected, skipEncode = false, skipMemcmpBufs = false) => {
+  testScvbDecodeEncode(t, testname, packetbuf, expected, skipEncode, skipMemcmpBufs)
+  return testHttpsDecodeEncode(t, testname, packetbuf, expected, skipEncode, skipMemcmpBufs)
+}
+
+tape('https svcb', function (t) {
+  // for the test vectors see:
+  //   https://datatracker.ietf.org/doc/rfc9460/
+  //   https://github.com/MikeBishop/dns-alt-svc/blob/main/draft-ietf-dnsop-svcb-https.md
+
+  testEncoder(t, packet.svcb, {
+    priority: 16,
+    name: 'foo.example.org',
+    values: {
+      mandatory: [
+        'alpn',
+        'ipv4hint'
+      ],
+      alpn: [
+        'h2',
+        'h3-19'
+      ],
+      ipv4hint: [
+        '192.0.2.1'
+      ]
+    }
+  }
+  )
+
+  testEncoder(t, packet.httpssvc, {
+    priority: 16,
+    name: 'foo.example.org',
+    values: {
+      mandatory: [
+        'alpn',
+        'ipv4hint'
+      ],
+      alpn: [
+        'h2',
+        'h3-19'
+      ],
+      ipv4hint: [
+        '192.0.2.1'
+      ]
+    }
+  }
+  )
+
+  // https AliasMode
+  testHttpsSvcbDecodeEncode(t, 'rfc9460 case1 (AliasMode)',
+    unhexlify(
+      '00 13' + // rdata len
+      '00 00' + // priority
+      '03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 63 6f 6d 00' // target
+    ),
+    {
+      priority: 0,
+      name: 'foo.example.com'
+    }
+  )
+
+  // https target name is "."
+  testHttpsSvcbDecodeEncode(t, 'rfc9460 case2 (target name ".")',
+    unhexlify(
+      '00 03' + // rdata len
+      '00 01' + // priority
+      '00' // target (root label)
+    ),
+    {
+      priority: 1,
+      name: '.'
+    }
+  )
+
+  // https port
+  testHttpsSvcbDecodeEncode(t, 'rfc9460 case3 (port)',
+    unhexlify(
+      '00 19' + // rdata len
+      '00 10' + // priority
+      '03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 63 6f 6d 00' + // target
+      '00 03' + // key 3
+      '00 02' + // length 2
+      '00 35' // value - target (root label)
+    ),
+    {
+      priority: 16,
+      name: 'foo.example.com',
+      values: {
+        port: 53
+      }
+    }
+  )
+
+  // https generic key and value
+  testHttpsSvcbDecodeEncode(t, 'rfc9460 case4 (generic key,val)',
+    unhexlify(
+      '00 1c' + // rdata len
+      '00 01' + // priority
+      '03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 63 6f 6d 00' + // target
+      '02 9b' + // key 667
+      '00 05' + // length 5
+      '68 65 6c 6c 6f' // value
+    ),
+    {
+      priority: 1,
+      name: 'foo.example.com',
+      values: {
+        key667: 'hello'
+      }
+    },
+    true // skipEncode, we cannot encode an unknown key
+  )
+
+  // https generic key and value with decimal escape
+  testHttpsSvcbDecodeEncode(t, 'rfc9460 case5 (generic key,val with escape)',
+    unhexlify(
+      '00 20' + // rdata len
+      '00 01' + // priority
+      '03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 63 6f 6d 00' + // target
+      '02 9b' + // key 667
+      '00 09' + // length 9
+      '68 65 6c 6c 6f d2 71 6f 6f' // value
+    ),
+    {
+      priority: 1,
+      name: 'foo.example.com',
+      values: {
+        key667: unhexlify('68 65 6c 6c 6f d2 71 6f 6f').toString('utf-8')
+      }
+    },
+    true // skipEncode, we cannot encode an unknown key
+  )
+
+  // https two quoted ipv6 hints
+  testHttpsSvcbDecodeEncode(t, 'rfc9460 case6 (ipv6hint)',
+    unhexlify(
+      '00 37' + // rdata len
+      '00 01' + // priority
+      '03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 63 6f 6d 00' + // target
+      '00 06' + // key 6
+      '00 20' + // length 32
+      '20 01 0d b8 00 00 00 00 00 00 00 00 00 00 00 01' + // first address
+      '20 01 0d b8 00 00 00 00 00 00 00 00 00 53 00 01' // second address
+    ),
+    {
+      priority: 1,
+      name: 'foo.example.com',
+      values: {
+        ipv6hint: [
+          '2001:db8::1',
+          '2001:db8::53:1'
+        ]
+      }
+    }
+  )
+
+  // https ipv6 hint using embedded ipv4 syntax [2001:db8:122:344::192.0.2.33]
+  testHttpsSvcbDecodeEncode(t, 'rfc9460 case7 (ipv6hint v4 syntax)',
+    unhexlify(
+      '00 23' + // rdata len
+      '00 01' + // priority
+      '07 65 78 61 6d 70 6c 65 03 63 6f 6d 00' + // target
+      '00 06' + // key 6
+      '00 10' + // length 16
+      '20 01 0d b8 01 22 03 44 00 00 00 00 c0 00 02 21' // address
+    ),
+    {
+      priority: 1,
+      name: 'example.com',
+      values: {
+        ipv6hint: [ ip.v6.decode(ip.v6.encode('2001:db8:122:344::192.0.2.33')) ]
+      }
+    }
+  )
+
+  // case 8
+  // https 16 foo.example.org. (
+  //    alpn=h2,h3-19 mandatory=ipv4hint,alpn
+  //    ipv4hint=192.0.2.1
+  // )
+  //
+  // note: this may not encode to the same buffer due to internal js
+  //       ordering of the `values` object storing the params
+  testHttpsSvcbDecodeEncode(t, 'rfc9460 case8 (alpn,mandatory,ipv4hint)',
+    unhexlify(
+      '00 30' + // rdata len
+      '00 10' + // priority
+      '03 66 6f 6f 07 65 78 61 6d 70 6c 65 03 6f 72 67 00' + // target
+      '00 00' + // key 0
+      '00 04' + // param length 4
+      '00 01' + // value: key 1
+      '00 04' + // value: key 4
+      '00 01' + // key 1
+      '00 09' + // param length 9
+      '02' + // alpn length 2
+      '68 32' + // alpn value
+      '05' + // alpn length 5
+      '68 33 2d 31 39' + // alpn value
+      '00 04' + // key 4
+      '00 04' + // param length 4
+      'c0 00 02 01' // param value
+    ),
+    {
+      priority: 16,
+      name: 'foo.example.org',
+      values: {
+        mandatory: [
+          'alpn',
+          'ipv4hint'
+        ],
+        alpn: [
+          'h2',
+          'h3-19'
+        ],
+        ipv4hint: [
+          '192.0.2.1'
+        ]
+      }
+    },
+    false, // skipEncode: false
+    true // skipMemcmpBufs: true, do not directly memcmp the resulting bufs, see comment above
+  )
+
+  t.end()
+})
+
+tape('cloudflare real world svcb/https', (t) => {
+  const httpsBuf = unhexlify(
+    'ef 23 81 80 00 01 00 01 00 00 00 01 09 63 6f 6d' +
+    '6d 75 6e 69 74 79 0a 63 6c 6f 75 64 66 6c 61 72' +
+    '65 03 63 6f 6d 00 00 41 00 01 09 63 6f 6d 6d 75' +
+    '6e 69 74 79 0a 63 6c 6f 75 64 66 6c 61 72 65 03' +
+    '63 6f 6d 00 00 41 00 01 00 00 00 3c 00 3d 00 01' +
+    '00 00 01 00 06 02 68 33 02 68 32 00 04 00 08 68' +
+    '12 02 43 68 12 03 43 00 06 00 20 26 06 47 00 00' +
+    '00 00 00 00 00 00 00 68 12 02 43 26 06 47 00 00' +
+    '00 00 00 00 00 00 00 68 12 03 43 00 00 29 02 00' +
+    '00 00 00 00 00 00'
+  )
+  const svcbBuf = unhexlify(
+    'ef 23 81 80 00 01 00 01 00 00 00 01 09 63 6f 6d' +
+    '6d 75 6e 69 74 79 0a 63 6c 6f 75 64 66 6c 61 72' +
+    '65 03 63 6f 6d 00 00 40 00 01 09 63 6f 6d 6d 75' +
+    '6e 69 74 79 0a 63 6c 6f 75 64 66 6c 61 72 65 03' +
+    '63 6f 6d 00 00 40 00 01 00 00 00 3c 00 3d 00 01' +
+    '00 00 01 00 06 02 68 33 02 68 32 00 04 00 08 68' +
+    '12 02 43 68 12 03 43 00 06 00 20 26 06 47 00 00' +
+    '00 00 00 00 00 00 00 68 12 02 43 26 06 47 00 00' +
+    '00 00 00 00 00 00 00 68 12 03 43 00 00 29 02 00' +
+    '00 00 00 00 00 00'
+  )
+
+  let expected = {
+    id: 61219,
+    type: 'response',
+    flags: 384,
+    flag_qr: true,
+    opcode: 'QUERY',
+    flag_aa: false,
+    flag_tc: false,
+    flag_rd: true,
+    flag_ra: true,
+    flag_z: false,
+    flag_ad: false,
+    flag_cd: false,
+    rcode: 'NOERROR',
+    questions: [
+      {
+        name: 'community.cloudflare.com',
+        type: 'HTTPS',
+        class: 'IN'
+      }
+    ],
+    answers: [
+      {
+        name: 'community.cloudflare.com',
+        type: 'HTTPS',
+        ttl: 60,
+        class: 'IN',
+        flush: false,
+        data: {
+          priority: 1,
+          name: '.',
+          values: {
+            alpn: [
+              'h3',
+              'h2'
+            ],
+            ipv4hint: [
+              '104.18.2.67',
+              '104.18.3.67'
+            ],
+            ipv6hint: [
+              '2606:4700::6812:243',
+              '2606:4700::6812:343'
+            ]
+          }
+        }
+      }
+    ],
+    authorities: [],
+    additionals: [
+      {
+        name: '.',
+        type: 'OPT',
+        udpPayloadSize: 512,
+        extendedRcode: 0,
+        ednsVersion: 0,
+        flags: 0,
+        flag_do: false,
+        options: []
+      }
+    ]
+  }
+
+  const decodedHttps = packet.decode(httpsBuf)
+  t.ok(decodedHttps, 'cloudflare real world https decoded')
+  if (debugHttps) {
+    console.log(`cloudflare real world: decodedHttps:`)
+    console.log(JSON.stringify(decodedHttps, null, 2))
+  }
+  t.ok(compare(t, decodedHttps, expected), 'cloudflare real world https compare')
+
+  const decodedSvcb = packet.decode(svcbBuf)
+  t.ok(decodedSvcb, 'cloudflare real world svcb decoded')
+  if (debugHttps) {
+    console.log(`cloudflare real world: decodedSvcb:`)
+    console.log(JSON.stringify(decodedSvcb, null, 2))
+  }
+  expected.questions[0].type = expected.answers[0].type = 'SVCB'
+  t.ok(compare(t, decodedSvcb, expected), 'cloudflare real world svcb compare')
+
+  t.end()
+})
+
+tape('google resolver SVCB real world', function (t) {
+  const svcbBuf = unhexlify(
+    'd0 90 85 80 00 01' +
+    '00 02 00 00 00 04 04 5f 64 6e 73 08 72 65 73 6f' +
+    '6c 76 65 72 04 61 72 70 61 00 00 40 00 01 c0 0c' +
+    '00 40 00 01 00 01 51 80 00 16 00 01 03 64 6e 73' +
+    '06 67 6f 6f 67 6c 65 00 00 01 00 04 03 64 6f 74' +
+    'c0 0c 00 40 00 01 00 01 51 80 00 2c 00 02 03 64' +
+    '6e 73 06 67 6f 6f 67 6c 65 00 00 01 00 06 02 68' +
+    '32 02 68 33 00 07 00 10 2f 64 6e 73 2d 71 75 65' +
+    '72 79 7b 3f 64 6e 73 7d 03 64 6e 73 06 67 6f 6f' +
+    '67 6c 65 00 00 01 00 01 00 01 51 80 00 04 08 08' +
+    '08 08 c0 7e 00 01 00 01 00 01 51 80 00 04 08 08' +
+    '04 04 c0 7e 00 1c 00 01 00 01 51 80 00 10 20 01' +
+    '48 60 48 60 00 00 00 00 00 00 00 00 88 88 c0 7e' +
+    '00 1c 00 01 00 01 51 80 00 10 20 01 48 60 48 60' +
+    '00 00 00 00 00 00 00 00 88 44'
+  )
+
+  const expected = {
+    id: 53392,
+    type: 'response',
+    flags: 1408,
+    flag_qr: true,
+    opcode: 'QUERY',
+    flag_aa: true,
+    flag_tc: false,
+    flag_rd: true,
+    flag_ra: true,
+    flag_z: false,
+    flag_ad: false,
+    flag_cd: false,
+    rcode: 'NOERROR',
+    questions: [
+      {
+        name: '_dns.resolver.arpa',
+        type: 'SVCB',
+        class: 'IN'
+      }
+    ],
+    answers: [
+      {
+        name: '_dns.resolver.arpa',
+        type: 'SVCB',
+        ttl: 86400,
+        class: 'IN',
+        flush: false,
+        data: {
+          priority: 1,
+          name: 'dns.google',
+          values: {
+            alpn: [
+              'dot'
+            ]
+          }
+        }
+      },
+      {
+        name: '_dns.resolver.arpa',
+        type: 'SVCB',
+        ttl: 86400,
+        class: 'IN',
+        flush: false,
+        data: {
+          priority: 2,
+          name: 'dns.google',
+          values: {
+            alpn: [
+              'h2',
+              'h3'
+            ],
+            dohpath: '/dns-query{?dns}'
+          }
+        }
+      }
+    ],
+    authorities: [],
+    additionals: [
+      {
+        name: 'dns.google',
+        type: 'A',
+        ttl: 86400,
+        class: 'IN',
+        flush: false,
+        data: '8.8.8.8'
+      },
+      {
+        name: 'dns.google',
+        type: 'A',
+        ttl: 86400,
+        class: 'IN',
+        flush: false,
+        data: '8.8.4.4'
+      },
+      {
+        name: 'dns.google',
+        type: 'AAAA',
+        ttl: 86400,
+        class: 'IN',
+        flush: false,
+        data: '2001:4860:4860::8888'
+      },
+      {
+        name: 'dns.google',
+        type: 'AAAA',
+        ttl: 86400,
+        class: 'IN',
+        flush: false,
+        data: '2001:4860:4860::8844'
+      }
+    ]
+  }
+
+  const decodedSvcb = packet.decode(svcbBuf)
+  t.ok(decodedSvcb, 'google real world svcb decoded')
+  if (debugHttps) {
+    console.log(`google real world svcb: decodedSvcb:`)
+    console.log(JSON.stringify(decodedSvcb, null, 2))
+  }
+  t.ok(compare(t, decodedSvcb, expected), 'google real world svcb compare')
+
+  // now test encoding and decoding the individual answer data
+  for (let answer of expected.answers) {
+    const encodedData = packet.svcb.encode(answer.data)
+    const decodedData = packet.svcb.decode(encodedData)
+    t.ok(compare(t, answer.data, decodedData), 'google real world answer recode')
+  }
+
+  t.end()
+})
+
+// </HTTPS SVCB test cases>
 
 tape('unpack', function (t) {
   const buf = Buffer.from([
