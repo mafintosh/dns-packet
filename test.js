@@ -443,7 +443,7 @@ tape('opt', function (t) {
   t.ok(compare(t, 0, additional2.flags), 'flags match')
   additional1.flags = packet.DNSSEC_OK
   additional1.extendedRcode = 0x80
-  additional1.options = [ {
+  additional1.options = [{
     code: 'CLIENT_SUBNET', // edns-client-subnet, see RFC 7871
     ip: 'fe80::',
     sourcePrefixLength: 64
@@ -557,15 +557,15 @@ tape('nsec', function (t) {
   })
 
   // Test with the sample NSEC from https://tools.ietf.org/html/rfc4034#section-4.3
-  var sampleNSEC = Buffer.from('003704686f7374076578616d706c6503636f6d00' +
+  const sampleNSEC = Buffer.from('003704686f7374076578616d706c6503636f6d00' +
       '0006400100000003041b000000000000000000000000000000000000000000000' +
       '000000020', 'hex')
-  var decoded = packet.nsec.decode(sampleNSEC)
+  const decoded = packet.nsec.decode(sampleNSEC)
   t.ok(compare(t, decoded, {
     nextDomain: 'host.example.com',
     rrtypes: ['A', 'MX', 'RRSIG', 'NSEC', 'UNKNOWN_1234']
   }))
-  var reencoded = packet.nsec.encode(decoded)
+  const reencoded = packet.nsec.encode(decoded)
   t.same(sampleNSEC.length, reencoded.length)
   t.same(sampleNSEC, reencoded)
   t.end()

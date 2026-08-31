@@ -364,7 +364,7 @@ rtxt.decode = function (buf, offset) {
   let remaining = buf.readUInt16BE(offset)
   offset += 2
 
-  let data = []
+  const data = []
   while (remaining > 0) {
     const len = buf[offset++]
     --remaining
@@ -725,7 +725,7 @@ roption.encode = function (option, buf, offset) {
     switch (code) {
       // case 3: NSID.  No encode makes sense.
       // case 5,6,7: Not implementable
-      case 8: // ECS
+      case 8: { // ECS
         // note: do IP math before calling
         const spl = option.sourcePrefixLength || 0
         const fam = option.family || ip.familyOf(option.ip)
@@ -741,6 +741,7 @@ roption.encode = function (option, buf, offset) {
         ipBuf.copy(buf, offset, 0, ipLen)
         offset += ipLen
         break
+      }
       // case 9: EXPIRE (experimental)
       // case 10: COOKIE.  No encode makes sense.
       case 11: // KEEP-ALIVE
@@ -754,15 +755,16 @@ roption.encode = function (option, buf, offset) {
           offset += 2
         }
         break
-      case 12: // PADDING
+      case 12: { // PADDING
         const len = option.length || 0
         buf.writeUInt16BE(len, offset)
         offset += 2
         buf.fill(0, offset, offset + len)
         offset += len
         break
+      }
       // case 13:  CHAIN.  Experimental.
-      case 14: // KEY-TAG
+      case 14: { // KEY-TAG
         const tagsLen = option.tags.length * 2
         buf.writeUInt16BE(tagsLen, offset)
         offset += 2
@@ -771,6 +773,7 @@ roption.encode = function (option, buf, offset) {
           offset += 2
         }
         break
+      }
       default:
         throw new Error(`Unknown roption code: ${option.code}`)
     }
@@ -793,7 +796,7 @@ roption.decode = function (buf, offset) {
   option.data = buf.slice(offset, offset + len)
   switch (option.code) {
     // case 3: NSID.  No decode makes sense.
-    case 8: // ECS
+    case 8: { // ECS
       option.family = buf.readUInt16BE(offset)
       offset += 2
       option.sourcePrefixLength = buf.readUInt8(offset++)
@@ -802,6 +805,7 @@ roption.decode = function (buf, offset) {
       buf.copy(padded, 0, offset, offset + len - 4)
       option.ip = ip.decode(padded)
       break
+    }
     // case 12: Padding.  No decode makes sense.
     case 11: // KEEP-ALIVE
       if (len > 0) {
@@ -830,9 +834,10 @@ roption.encodingLength = function (option) {
   }
   const code = optioncodes.toCode(option.code)
   switch (code) {
-    case 8: // ECS
+    case 8: { // ECS
       const spl = option.sourcePrefixLength || 0
       return Math.ceil(spl / 8) + 8
+    }
     case 11: // KEEP-ALIVE
       return (typeof option.timeout === 'number') ? 6 : 4
     case 12: // PADDING
@@ -920,8 +925,8 @@ rdnskey.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var key = {}
-  var length = buf.readUInt16BE(offset)
+  const key = {}
+  const length = buf.readUInt16BE(offset)
   offset += 2
   key.flags = buf.readUInt16BE(offset)
   offset += 2
@@ -986,8 +991,8 @@ rrrsig.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var sig = {}
-  var length = buf.readUInt16BE(offset)
+  const sig = {}
+  const length = buf.readUInt16BE(offset)
   offset += 2
   sig.typeCovered = types.toString(buf.readUInt16BE(offset))
   offset += 2
@@ -1065,18 +1070,18 @@ typebitmap.encode = function (typelist, buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var typesByWindow = []
-  for (var i = 0; i < typelist.length; i++) {
-    var typeid = types.toType(typelist[i])
+  const typesByWindow = []
+  for (let i = 0; i < typelist.length; i++) {
+    const typeid = types.toType(typelist[i])
     if (typesByWindow[typeid >> 8] === undefined) {
       typesByWindow[typeid >> 8] = []
     }
     typesByWindow[typeid >> 8][(typeid >> 3) & 0x1F] |= 1 << (7 - (typeid & 0x7))
   }
 
-  for (i = 0; i < typesByWindow.length; i++) {
+  for (let i = 0; i < typesByWindow.length; i++) {
     if (typesByWindow[i] !== undefined) {
-      var windowBuf = Buffer.from(typesByWindow[i])
+      const windowBuf = Buffer.from(typesByWindow[i])
       buf.writeUInt8(i, offset)
       offset += 1
       buf.writeUInt8(windowBuf.length, offset)
@@ -1096,17 +1101,17 @@ typebitmap.decode = function (buf, offset, length) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var typelist = []
+  const typelist = []
   while (offset - oldOffset < length) {
-    var window = buf.readUInt8(offset)
+    const window = buf.readUInt8(offset)
     offset += 1
-    var windowLength = buf.readUInt8(offset)
+    const windowLength = buf.readUInt8(offset)
     offset += 1
-    for (var i = 0; i < windowLength; i++) {
-      var b = buf.readUInt8(offset + i)
-      for (var j = 0; j < 8; j++) {
+    for (let i = 0; i < windowLength; i++) {
+      const b = buf.readUInt8(offset + i)
+      for (let j = 0; j < 8; j++) {
         if (b & (1 << (7 - j))) {
-          var typeid = types.toString((window << 8) | (i << 3) | j)
+          const typeid = types.toString((window << 8) | (i << 3) | j)
           typelist.push(typeid)
         }
       }
@@ -1121,14 +1126,14 @@ typebitmap.decode = function (buf, offset, length) {
 typebitmap.decode.bytes = 0
 
 typebitmap.encodingLength = function (typelist) {
-  var extents = []
-  for (var i = 0; i < typelist.length; i++) {
-    var typeid = types.toType(typelist[i])
+  const extents = []
+  for (let i = 0; i < typelist.length; i++) {
+    const typeid = types.toType(typelist[i])
     extents[typeid >> 8] = Math.max(extents[typeid >> 8] || 0, typeid & 0xFF)
   }
 
-  var len = 0
-  for (i = 0; i < extents.length; i++) {
+  let len = 0
+  for (let i = 0; i < extents.length; i++) {
     if (extents[i] !== undefined) {
       len += 2 + Math.ceil((extents[i] + 1) / 8)
     }
@@ -1161,8 +1166,8 @@ rnsec.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var record = {}
-  var length = buf.readUInt16BE(offset)
+  const record = {}
+  const length = buf.readUInt16BE(offset)
   offset += 2
   record.nextDomain = name.decode(buf, offset)
   offset += name.decode.bytes
@@ -1227,8 +1232,8 @@ rnsec3.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var record = {}
-  var length = buf.readUInt16BE(offset)
+  const record = {}
+  const length = buf.readUInt16BE(offset)
   offset += 2
   record.algorithm = buf.readUInt8(offset)
   offset += 1
@@ -1293,8 +1298,8 @@ rds.decode = function (buf, offset) {
   if (!offset) offset = 0
   const oldOffset = offset
 
-  var digest = {}
-  var length = buf.readUInt16BE(offset)
+  const digest = {}
+  const length = buf.readUInt16BE(offset)
   offset += 2
   digest.keyTag = buf.readUInt16BE(offset)
   offset += 2

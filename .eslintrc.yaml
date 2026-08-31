@@ -1,8 +1,0 @@
-root: true
-
-# https://eslint.org/docs/user-guide/configuring/language-options#specifying-environments
-env:
-  node: true
-  es6: true
-
-extends: standard

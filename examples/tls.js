@@ -3,8 +3,8 @@
 const tls = require('tls')
 const dnsPacket = require('..')
 
-var response = null
-var expectedLength = 0
+let response = null
+let expectedLength = 0
 
 function getRandomInt (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min

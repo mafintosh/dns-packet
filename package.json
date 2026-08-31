@@ -7,26 +7,23 @@
   "repository": "mafintosh/dns-packet",
   "homepage": "https://github.com/mafintosh/dns-packet",
   "engines": {
-    "node": ">=6"
+    "node": ">=18"
   },
   "scripts": {
     "clean": "rm -rf coverage .nyc_output/",
-    "lint": "eslint --color *.js examples/*.js",
+    "lint": "eslint",
     "pretest": "npm run lint",
     "test": "tape test.js",
     "coverage": "nyc -r html npm test"
   },
   "dependencies": {
-    "@leichtgewicht/ip-codec": "^2.0.1"
+    "@leichtgewicht/ip-codec": "^2.0.5"
   },
   "devDependencies": {
-    "eslint": "^5.14.1",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-import": "^2.16.0",
-    "eslint-plugin-node": "^8.0.1",
-    "eslint-plugin-promise": "^4.0.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "tape": "^4.10.1"
+    "eslint": "9.36.0",
+    "neostandard": "0.12.2",
+    "nyc": "17.1.0",
+    "tape": "^5.9.0"
   },
   "keywords": [
     "dns",
