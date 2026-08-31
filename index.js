@@ -1608,8 +1608,12 @@ question.encode = function (q, buf, offset) {
 
   buf.writeUInt16BE(types.toType(q.type), offset)
   offset += 2
+  if (q.qu === undefined || q.qu !== true) {
+    buf.writeUInt16BE(classes.toClass(q.class === undefined ? 'IN' : q.class), offset)
+  } else {
+    buf.writeUInt16BE(classes.toClass(q.class === undefined ? 'IN' : q.class) + QU_MASK, offset)
+  }
 
-  buf.writeUInt16BE(classes.toClass(q.class === undefined ? 'IN' : q.class), offset)
   offset += 2
 
   question.encode.bytes = offset - oldOffset
@@ -1630,7 +1634,14 @@ question.decode = function (buf, offset) {
   q.type = types.toString(buf.readUInt16BE(offset))
   offset += 2
 
-  q.class = classes.toString(buf.readUInt16BE(offset))
+  const classValue = buf.readUInt16BE(offset)
+  if (classValue >= QU_MASK) {
+    q.qu = true
+    q.class = classes.toString(classValue - QU_MASK)
+  } else {
+    q.class = classes.toString(classValue)
+  }
+
   offset += 2
 
   const qu = !!(q.class & QU_MASK)
