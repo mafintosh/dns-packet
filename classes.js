@@ -12,6 +12,7 @@ exports.toString = function (klass) {
 }
 
 exports.toClass = function (name) {
+  if (typeof name === 'number') return name
   switch (name.toUpperCase()) {
     case 'IN': return 1
     case 'CS': return 2
@@ -19,5 +20,6 @@ exports.toClass = function (name) {
     case 'HS': return 4
     case 'ANY': return 255
   }
+  if (name.toUpperCase().startsWith('UNKNOWN_')) return parseInt(name.slice(8))
   return 0
 }

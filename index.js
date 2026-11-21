@@ -17,37 +17,91 @@ const NOT_QU_MASK = ~QU_MASK
 
 const name = exports.name = {}
 
-name.encode = function (str, buf, offset, { mail = false } = {}) {
+// Names use the presentation format of RFC 1035, section 5.1: a label holding
+// a dot or a backslash escapes it (\. and \\), and a byte that is not part of
+// UTF-8 text is written \DDD (three decimal digits). So every name decodes to
+// a string that encodes back to the same labels, and the local part of a
+// mailbox (SOA rname, RP mbox), john\.doe, is a single label.
+
+// The labels of a name, as strings, or as Buffers when they hold escapes.
+function nameLabels (str) {
+  if (str.indexOf('\\') === -1) {
+    // strip leading and trailing .
+    const n = str.replace(/^\.|\.$/gm, '')
+    return n.length ? n.split('.') : []
+  }
+
+  const labels = []
+  let parts = []
+  let start = 0
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === '.') {
+      parts.push(str.slice(start, i))
+      labels.push(parts)
+      parts = []
+      start = i + 1
+    } else if (str[i] === '\\' && i + 1 < str.length) {
+      parts.push(str.slice(start, i))
+      const ddd = str.slice(i + 1, i + 4)
+      if (/^[0-9]{3}$/.test(ddd) && Number(ddd) <= 255) {
+        parts.push(Buffer.from([Number(ddd)]))
+        i += 3
+      } else {
+        const c = String.fromCodePoint(str.codePointAt(i + 1))
+        parts.push(c)
+        i += c.length
+      }
+      start = i + 1
+    }
+  }
+  parts.push(str.slice(start))
+  labels.push(parts)
+
+  const list = labels.map(function (p) {
+    return Buffer.concat(p.map(function (s) { return typeof s === 'string' ? Buffer.from(s) : s }))
+  })
+  // strip leading and trailing .
+  if (list.length && list[0].length === 0) list.shift()
+  if (list.length && list[list.length - 1].length === 0) list.pop()
+  return list
+}
+
+function decodeLabel (buf, start, end) {
+  let ascii = true
+  let special = false
+  for (let i = start; i < end; i++) {
+    if (buf[i] >= 0x80) ascii = false
+    else if (buf[i] === 0x2e || buf[i] === 0x5c) special = true
+  }
+
+  const label = buf.toString('utf-8', start, end)
+  if (ascii || Buffer.from(label).equals(buf.subarray(start, end))) {
+    return special ? label.replace(/[.\\]/g, '\\$&') : label
+  }
+
+  // Not UTF-8: escape every byte outside printable ASCII
+  let s = ''
+  for (let i = start; i < end; i++) {
+    const b = buf[i]
+    if (b === 0x2e || b === 0x5c) s += '\\' + String.fromCharCode(b)
+    else if (b > 0x20 && b < 0x7f) s += String.fromCharCode(b)
+    else s += '\\' + ('00' + b).slice(-3)
+  }
+  return s
+}
+
+name.encode = function (str, buf, offset) {
   if (!buf) buf = Buffer.alloc(name.encodingLength(str))
   if (!offset) offset = 0
   const oldOffset = offset
 
-  // strip leading and trailing .
-  const n = str.replace(/^\.|\.$/gm, '')
-  if (n.length) {
-    let list = []
-    if (mail) {
-      let localPart = ''
-      n.split('.').forEach(label => {
-        if (label.endsWith('\\')) {
-          localPart += (localPart.length ? '.' : '') + label.slice(0, -1)
-        } else {
-          if (list.length === 0 && localPart.length) {
-            list.push(localPart + '.' + label)
-          } else {
-            list.push(label)
-          }
-        }
-      })
-    } else {
-      list = n.split('.')
-    }
-
-    for (let i = 0; i < list.length; i++) {
-      const len = buf.write(list[i], offset + 1)
-      buf[offset] = len
-      offset += len + 1
-    }
+  const list = nameLabels(str)
+  for (let i = 0; i < list.length; i++) {
+    const len = typeof list[i] === 'string'
+      ? buf.write(list[i], offset + 1)
+      : list[i].copy(buf, offset + 1)
+    buf[offset] = len
+    offset += len + 1
   }
 
   buf[offset++] = 0
@@ -58,7 +112,7 @@ name.encode = function (str, buf, offset, { mail = false } = {}) {
 
 name.encode.bytes = 0
 
-name.decode = function (buf, offset, { mail = false } = {}) {
+name.decode = function (buf, offset) {
   if (!offset) offset = 0
 
   const list = []
@@ -84,11 +138,7 @@ name.decode = function (buf, offset, { mail = false } = {}) {
       if (totalLength > 254) {
         throw new Error('Cannot decode name (name too long)')
       }
-      let label = buf.toString('utf-8', offset, offset + len)
-      if (mail) {
-        label = label.replace(/\./g, '\\.')
-      }
-      list.push(label)
+      list.push(decodeLabel(buf, offset, offset + len))
       offset += len
       consumedBytes += jumped ? 0 : len
     } else if ((len & 0xc0) === 0xc0) {
@@ -118,8 +168,16 @@ name.decode = function (buf, offset, { mail = false } = {}) {
 name.decode.bytes = 0
 
 name.encodingLength = function (n) {
-  if (n === '.' || n === '..') return 1
-  return Buffer.byteLength(n.replace(/^\.|\.$/gm, '')) + 2
+  if (n.indexOf('\\') === -1) {
+    if (n === '.' || n === '..') return 1
+    return Buffer.byteLength(n.replace(/^\.|\.$/gm, '')) + 2
+  }
+  const list = nameLabels(n)
+  let len = 1
+  for (let i = 0; i < list.length; i++) {
+    len += 1 + (typeof list[i] === 'string' ? Buffer.byteLength(list[i]) : list[i].length)
+  }
+  return len
 }
 
 const string = {}
@@ -274,7 +332,7 @@ rsoa.encode = function (data, buf, offset) {
   offset += 2
   name.encode(data.mname, buf, offset)
   offset += name.encode.bytes
-  name.encode(data.rname, buf, offset, { mail: true })
+  name.encode(data.rname, buf, offset)
   offset += name.encode.bytes
   buf.writeUInt32BE(data.serial || 0, offset)
   offset += 4
@@ -303,7 +361,7 @@ rsoa.decode = function (buf, offset) {
   offset += 2
   data.mname = name.decode(buf, offset)
   offset += name.decode.bytes
-  data.rname = name.decode(buf, offset, { mail: true })
+  data.rname = name.decode(buf, offset)
   offset += name.decode.bytes
   data.serial = buf.readUInt32BE(offset)
   offset += 4
@@ -1027,7 +1085,7 @@ rrp.encode = function (data, buf, offset) {
   const oldOffset = offset
 
   offset += 2 // Leave space for length
-  name.encode(data.mbox || '.', buf, offset, { mail: true })
+  name.encode(data.mbox || '.', buf, offset)
   offset += name.encode.bytes
   name.encode(data.txt || '.', buf, offset)
   offset += name.encode.bytes
@@ -1044,7 +1102,7 @@ rrp.decode = function (buf, offset) {
 
   const data = {}
   offset += 2
-  data.mbox = name.decode(buf, offset, { mail: true }) || '.'
+  data.mbox = name.decode(buf, offset) || '.'
   offset += name.decode.bytes
   data.txt = name.decode(buf, offset) || '.'
   offset += name.decode.bytes
