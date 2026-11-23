@@ -55,6 +55,8 @@ Decode a DNS packet from a buffer containing a UDP payload.
 #### `var buf = packets.streamEncode(packet, [buf], [offset])`
 
 Encodes a DNS packet into a buffer containing a TCP payload.
+The TCP length prefix is two bytes, so a message larger than 65535 bytes
+throws a `RangeError`. A server can answer with the truncated (TC) flag instead.
 
 #### `var packet = packets.streamDecode(buf, [offset])`
 

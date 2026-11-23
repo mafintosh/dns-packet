@@ -420,6 +420,21 @@ tape('stream', function (t) {
   t.end()
 })
 
+tape('stream too large', function (t) {
+  // Two TXT records of 130 strings of 255 bytes each: every record fits, but
+  // the message is over 65535 bytes and its length does not fit the
+  // two-byte TCP length prefix
+  const txt = {
+    type: 'TXT',
+    name: 'example.com',
+    data: new Array(130).fill(Buffer.alloc(255))
+  }
+  const val = { type: 'response', answers: [txt, txt] }
+  t.ok(packet.encode(val).length > 65535, 'message is over 65535 bytes')
+  t.throws(function () { packet.streamEncode(val) }, /^RangeError: Cannot stream encode a message of \d+ bytes \(max 65535\)$/)
+  t.end()
+})
+
 tape('opt', function (t) {
   const val = {
     type: 'query',

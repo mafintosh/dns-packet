@@ -1716,6 +1716,10 @@ exports.encodingLength = function (result) {
 
 exports.streamEncode = function (result) {
   const buf = exports.encode(result)
+  if (buf.byteLength > 65535) {
+    // The TCP length prefix is two bytes (RFC 1035, section 4.2.2)
+    throw new RangeError('Cannot stream encode a message of ' + buf.byteLength + ' bytes (max 65535)')
+  }
   const sbuf = Buffer.alloc(2)
   sbuf.writeUInt16BE(buf.byteLength)
   const combine = Buffer.concat([sbuf, buf])
