@@ -5,6 +5,7 @@ const packet = require('./')
 const rcodes = require('./rcodes')
 const opcodes = require('./opcodes')
 const optioncodes = require('./optioncodes')
+const classes = require('./classes')
 
 tape('unknown', function (t) {
   testEncoder(t, packet.unknown, Buffer.from('hello world'))
@@ -347,6 +348,41 @@ tape('name_encoding', function (t) {
   t.ok(data === dd, 'encode/decode matches')
   offset += packet.name.encode.bytes
 
+  t.end()
+})
+
+tape('name_roundtrip', function (t) {
+  function roundtrip (wire, presentation, msg) {
+    t.same(packet.name.decode(wire), presentation, msg + ': decode')
+    const buf = packet.name.encode(presentation)
+    t.ok(buf.equals(wire), msg + ': encode')
+    t.same(packet.name.encodingLength(presentation), wire.length, msg + ': encodingLength')
+  }
+
+  // A dot inside a label is escaped, so the name keeps its labels
+  roundtrip(Buffer.from('\x07my.host\x07example\x00', 'latin1'), 'my\\.host.example', 'dot in label')
+  // So is a backslash
+  roundtrip(Buffer.from('\x03a\\b\x00', 'latin1'), 'a\\\\b', 'backslash in label')
+  // Bytes that are not UTF-8 are written as \DDD (RFC 1035, section 5.1)
+  roundtrip(Buffer.from([0x02, 0xff, 0xfe, 0x00]), '\\255\\254', 'binary label')
+  roundtrip(Buffer.concat([Buffer.from([63]), Buffer.alloc(63, 0xff), Buffer.from([0])]), '\\255'.repeat(63), '63-byte binary label')
+  // UTF-8 labels stay readable
+  roundtrip(Buffer.from('\x08m\xc3\xbcnchen\x02de\x00', 'latin1'), 'münchen.de', 'utf-8 label')
+  // An escaped trailing dot belongs to the label
+  roundtrip(Buffer.from('\x02a.\x00', 'latin1'), 'a\\.', 'escaped trailing dot')
+
+  // Escapes are accepted on encode
+  t.ok(packet.name.encode('\\097\\.b').equals(Buffer.from('\x03a.b\x00', 'latin1')), 'decimal escape')
+  t.end()
+})
+
+tape('class_roundtrip', function (t) {
+  const q = { type: 'A', name: 'example.com', class: 'UNKNOWN_42' }
+  const buf = packet.encode({ type: 'query', questions: [q] })
+  t.same(buf.readUInt16BE(buf.length - 2), 42, 'unknown class is encoded')
+  t.same(packet.decode(buf).questions[0].class, 'UNKNOWN_42', 'unknown class round-trips')
+  t.same(classes.toClass(42), 42, 'numeric class')
+  t.same(classes.toClass('ch'), 3, 'class names are case-insensitive')
   t.end()
 })
 

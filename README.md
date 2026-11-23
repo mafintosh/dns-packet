@@ -108,10 +108,16 @@ A question looks like this
 ``` js
 {
   type: 'A', // or SRV, AAAA, etc
-  class: 'IN', // one of IN, CS, CH, HS, ANY. Default: IN
+  class: 'IN', // one of IN, CS, CH, HS, ANY, UNKNOWN_<number> or a number. Default: IN
   name: 'google.com' // which record are you looking for
 }
 ```
+
+Names use the presentation format of RFC 1035, section 5.1. A dot or a
+backslash inside a label is escaped (`'my\\.host.example'` is the two labels
+`my.host` and `example`), and a label that is not UTF-8 text writes each byte
+outside printable ASCII as `\DDD` (`'\\255\\254'`). Decoding a name and
+encoding it again gives the same labels.
 
 And an answer, additional, or authority looks like this
 
