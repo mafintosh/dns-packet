@@ -1732,7 +1732,7 @@ exports.streamDecode = function (sbuf) {
     return null
   }
   const result = exports.decode(sbuf.slice(2))
-  exports.streamDecode.bytes = exports.decode.bytes
+  exports.streamDecode.bytes = exports.decode.bytes + 2
   return result
 }
 

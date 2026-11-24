@@ -409,6 +409,7 @@ tape('stream', function (t) {
   const val2 = packet.streamDecode(buf)
 
   t.same(buf.length, packet.streamEncode.bytes, 'streamEncode.bytes was set correctly')
+  t.same(buf.length, packet.streamDecode.bytes, 'streamDecode.bytes was set correctly')
   t.ok(compare(t, val2.type, val.type), 'streamDecoded type match')
   t.ok(compare(t, val2.id, val.id), 'streamDecoded id match')
   t.ok(parseInt(val2.flags) === parseInt(val.flags & 0x7FFF), 'streamDecoded flags match')
