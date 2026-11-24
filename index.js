@@ -1613,7 +1613,7 @@ question.encode = function (q, buf, offset) {
   offset += 2
 
   question.encode.bytes = offset - oldOffset
-  return q
+  return buf
 }
 
 question.encode.bytes = 0

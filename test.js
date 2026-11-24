@@ -126,6 +126,12 @@ tape('aaaa', function (t) {
   t.end()
 })
 
+tape('question', function (t) {
+  testEncoder(t, packet.question, { type: 'A', class: 'IN', name: 'example.com' })
+  testEncoder(t, packet.question, { type: 'AAAA', class: 'CH', name: 'a.b.example' })
+  t.end()
+})
+
 tape('query', function (t) {
   testEncoder(t, packet, {
     type: 'query',
