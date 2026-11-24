@@ -1725,13 +1725,14 @@ exports.streamEncode = function (result) {
 
 exports.streamEncode.bytes = 0
 
-exports.streamDecode = function (sbuf) {
-  const len = sbuf.readUInt16BE(0)
-  if (sbuf.byteLength < len + 2) {
+exports.streamDecode = function (sbuf, offset) {
+  if (!offset) offset = 0
+  const len = sbuf.readUInt16BE(offset)
+  if (sbuf.byteLength < offset + len + 2) {
     // not enough data
     return null
   }
-  const result = exports.decode(sbuf.slice(2))
+  const result = exports.decode(sbuf.slice(offset + 2, offset + 2 + len))
   exports.streamDecode.bytes = exports.decode.bytes
   return result
 }

@@ -420,6 +420,19 @@ tape('stream', function (t) {
   t.end()
 })
 
+tape('stream at an offset', function (t) {
+  const first = packet.streamEncode({ type: 'query', id: 1, questions: [{ type: 'A', name: 'first.example' }] })
+  const second = packet.streamEncode({ type: 'query', id: 2, questions: [{ type: 'A', name: 'second.example' }] })
+  const both = Buffer.concat([first, second])
+
+  const val = packet.streamDecode(both, first.length)
+  t.same(val.id, 2, 'decodes the message at the offset')
+  t.same(val.questions[0].name, 'second.example', 'decodes the question of the message at the offset')
+  t.same(packet.streamDecode(both).id, 1, 'offset defaults to 0')
+  t.same(packet.streamDecode(both.slice(0, both.length - 1), first.length), null, 'returns null when the message at the offset is not complete')
+  t.end()
+})
+
 tape('opt', function (t) {
   const val = {
     type: 'query',
